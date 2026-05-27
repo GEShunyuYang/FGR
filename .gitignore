@@ -73,3 +73,22 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Crash dumps
+*.dmp
+*.stackdump
+
+# IDE
+.vscode/
+.idea/
+*.DotSettings.user
+
+# Test
+/TestResults/
+
+# Addressables remote build
+/[Ss]erverData/
+
+# Profiling captures
+*.raw
+*.data
