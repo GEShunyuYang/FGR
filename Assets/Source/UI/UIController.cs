@@ -61,7 +61,7 @@ public class UIController : MonoBehaviour
             cardsCanvas.overrideSorting = true;
             cardsCanvas.sortingOrder = cards.Count + 2 - i;
             BaseCard card = handCard.GetComponent<BaseCard>();
-            card.image = handCard.GetComponent<RawImage>();
+            //card.image = handCard.GetComponent<RawImage>();
             //card.image.texture = CardDeck.GOdic["OneMoreStep"].transform.Find("Profile").GetComponent<RawImage>().texture;
 
             handCards.Add(handCard);
