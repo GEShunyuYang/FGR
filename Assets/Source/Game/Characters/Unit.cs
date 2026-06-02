@@ -23,7 +23,7 @@ public class UnitRuntime
 {
     public UnitConfig Config;
 
-    public int CurrentHP;
+    public float CurrentHP;
 
     public Vector2Int GridPos;
 }

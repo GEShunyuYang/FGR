@@ -4,57 +4,67 @@ using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
-    [SerializeField] GameObject PlayerPrefab;
+    // chess board
+    private Board Board;
 
-    [SerializeField] List<GameObject> EnemyPrefabs;
-    public Board Board { get; private set; }
-    public int BoardWidth { get; private set; }
-    public int BoardHeight { get; private set; }
-    public float SplitLineWidth { get; private set; }
-    public Unit CurrentPlayer { get; private set; }
-    public List<Unit> CurrentEnemies { get; private set; }
-    private BattleActionQueue Queue;
+    // player
+    [SerializeField] private Unit PlayerPrefab;
+    private Unit CurrentPlayer;
+    private List<CardInstance> HandCards;
+    private List<CardInstance> DrawPile;
+    private List<CardInstance> DiscardPile;
+
+    // enemies
+    [SerializeField] List<Unit> EnemyPrefabs;
+    private List<Unit> CurrentEnemies;
+
+    // gameplay
+    private RuntimeBattleState CurrentBattleState;
+    private BattleActionQueue Queue; // animation sequence
 
     private void Awake()
     {
-        if (!PlayerPrefab) Debug.LogError("PlayerPrefab is empty");
-        if (EnemyPrefabs.Count == 0) Debug.LogError("EnemyPrefabs is empty");
+        if (!PlayerPrefab || EnemyPrefabs.Count == 0) Debug.LogError("Battle Manager is not set");
+
         CurrentEnemies = new List<Unit>();
         Board = FindFirstObjectByType<Board>();
         Queue = new BattleActionQueue();
-    }
-
-    void Start()
-    {
-        BoardWidth = GameManager.Instance.CurrentBattleState.BoardWidth;
-        BoardHeight = GameManager.Instance.CurrentBattleState.BoardHeight;
-        SplitLineWidth = GameManager.Instance.CurrentBattleState.SplitLineWidth;
-        Board.Init(BoardWidth, BoardHeight, SplitLineWidth);
-
-        CurrentPlayer = Instantiate(PlayerPrefab).GetComponent<Unit>();
-        CurrentPlayer.Init(Board, GameManager.Instance.CurrentBattleState.Player);
-
-        foreach (UnitRuntime enemy in GameManager.Instance.CurrentBattleState.Enemies)
-        {
-            Unit EnemyUnit;
-            switch (enemy.Config.type) {
-                default:
-                    if (!EnemyPrefabs[0]) return;
-                    EnemyUnit = Instantiate(EnemyPrefabs[0]).GetComponent<Unit>();
-                    break;
-            }
-            EnemyUnit.Init(Board, enemy);
-            CurrentEnemies.Add(EnemyUnit);
-        }
-
-        // temporal test
-        //Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
-        //StartCoroutine(Queue.Execute());
     }
 
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    public void Init(RuntimeBattleState RTBattleState)
+    {
+        CurrentBattleState = RTBattleState;
+
+        // chess board
+        Board.Init();
+
+        // player
+        CurrentPlayer = Instantiate(PlayerPrefab);
+        CurrentPlayer.Init(Board, CurrentBattleState.Player);
+
+        // enemies
+        foreach (UnitRuntime enemy in CurrentBattleState.Enemies)
+        {
+            Unit EnemyUnit;
+            switch (enemy.Config.type)
+            {
+                default:
+                    if (!EnemyPrefabs[0]) break;
+                    EnemyUnit = Instantiate(EnemyPrefabs[0]);
+                    EnemyUnit.Init(Board, enemy);
+                    CurrentEnemies.Add(EnemyUnit);
+                    break;
+            }
+        }
+
+        // temporal test
+        Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
+        StartCoroutine(Queue.Execute());
     }
 }

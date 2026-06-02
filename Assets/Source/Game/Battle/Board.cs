@@ -6,8 +6,10 @@ public class Board : MonoBehaviour
 {
     [SerializeField] private Renderer BoardRenderer;
 
-    public int Width {get; private set; }
-    public int Height { get; private set; }
+    [SerializeField] private int Width;
+    [SerializeField] private int Height;
+
+    [SerializeField] private float LineWidth;
 
     public TileData[,] Tiles { get; private set; }
 
@@ -44,18 +46,10 @@ public class Board : MonoBehaviour
         return new Vector2Int(x, y);
     }
 
-    public void Init(int width, int height, float lineWidth)
+    public void Init()
     {
-        if(width == 0 || height == 0 || lineWidth == 0)
-        {
-            Debug.LogError("Board is not initialized properly");
-        }
-
-        Width = width;
-        Height = height;
-
         Material material = BoardRenderer.material;
-        material.SetFloat("_LineWidth", lineWidth);
+        material.SetFloat("_LineWidth", LineWidth);
         material.SetFloat("_GridX", Width);
         material.SetFloat("_GridY", Height);
 

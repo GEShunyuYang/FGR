@@ -7,7 +7,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public BattleState CurrentBattleState { get; private set; }
+    //public BattleStateSO BattleStateSO { get; private set; }
 
     [SerializeField] public CardDeck TestCardDeck;
 
@@ -26,13 +26,22 @@ public class GameManager : MonoBehaviour
             Debug.LogError("BattleCard is empty!");
             return;
         }
+    }
 
+    void Start()
+    {
+        StartBattle();
+    }
+
+    void StartBattle()
+    {
+        BattleManager CurrentBattleManager = FindFirstObjectByType<BattleManager>();
+        CardRenderer CurrentCardRenderer = FindFirstObjectByType<CardRenderer>();
+        CardManager CurrentCardManager = FindFirstObjectByType<CardManager>();
+        UIManager CurrentUIManager = FindFirstObjectByType<UIManager>();
         // temporal test
-        CurrentBattleState = new BattleState
+        RuntimeBattleState RTBS = new RuntimeBattleState
         {
-            BoardWidth = 6,
-            BoardHeight = 6,
-            SplitLineWidth = 0.01f,
             Player = new UnitRuntime
             {
                 Config = new UnitConfig { MaxHealth = 100f },
@@ -44,23 +53,27 @@ public class GameManager : MonoBehaviour
             Enemies = new List<UnitRuntime> {
                 new UnitRuntime
                 {
-                    Config = new UnitConfig{ MaxHealth = 90f },
+                    Config = new UnitConfig{type = EnemyType.DEFAULT ,MaxHealth = 90f },
 
-                    CurrentHP = 100,
+                    CurrentHP = 90,
 
                     GridPos = new Vector2Int(5, 3)
                 }},
             CurrentCardDeck = TestCardDeck
         };
+
+        CurrentBattleManager.Init(RTBS);
+        CurrentCardManager.Init(RTBS);
+        CurrentCardRenderer.Init(CurrentCardManager.instances);
+        CurrentUIManager.Init(CurrentCardRenderer);
     }
 }
 
-public class BattleState
+// to be made as SO
+public class RuntimeBattleState
 {
     // battle
-    public int BoardWidth;
-    public int BoardHeight;
-    public float SplitLineWidth;
+    public int CurrentTurn;
     public UnitRuntime Player;
     public List<UnitRuntime> Enemies;
     // card
