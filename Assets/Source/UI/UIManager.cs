@@ -27,10 +27,10 @@ public class UIManager : MonoBehaviour
         //OnDrawCard(cards);
     }
 
-    private void OnDrawCard(List<CardInstance> cards)
+    private void OnDrawCard(List<CardInstance> instances)
     {
         //draw card
-        CurrentHandView.DrawCards(cards);
+        CurrentHandView.DrawCards(instances);
     }
 
 

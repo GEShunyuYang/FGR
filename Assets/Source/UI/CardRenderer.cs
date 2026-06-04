@@ -28,6 +28,12 @@ public class CardRenderer : MonoBehaviour
 
     public void Init(List<CardInstance> instances)
     {
+        if (instances == null || instances.Count == 0)
+        {
+            Debug.LogWarning("CardRenderer.Init called with empty card instances.");
+            return;
+        }
+
         int columns = Mathf.CeilToInt(Mathf.Sqrt(instances.Count));
         int rows = Mathf.CeilToInt(instances.Count / (float)columns);
 
@@ -79,7 +85,12 @@ public class CardRenderer : MonoBehaviour
         CardsCamera.Render();
     }
 
-    public void UpdateTexture()
+    private void Update()
+    {
+        UpdateTexture();
+    }
+
+    private void UpdateTexture()
     {
         for (int i = 0; i < CRVs.Count; i++) {
             CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);

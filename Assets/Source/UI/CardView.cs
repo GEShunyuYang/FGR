@@ -48,6 +48,6 @@ public class CardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnPointerExit(PointerEventData pointerEventData)
     {
         this.transform.position -= new Vector3(0, 170f, 0);
-        this.transform.localScale = new Vector3(1f, 1f, 1f);
+        this.transform.localScale = Vector3.one;
     }
 }

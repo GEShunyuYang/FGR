@@ -11,6 +11,8 @@ public class BattleActionQueue
 {
     private readonly Queue<BattleAction> Actions = new Queue<BattleAction>();
 
+    public bool HasActions => Actions.Count > 0;
+
     public void Enqueue(BattleAction action)
     {
         Actions.Enqueue(action);

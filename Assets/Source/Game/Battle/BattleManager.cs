@@ -7,12 +7,12 @@ public class BattleManager : MonoBehaviour
     // chess board
     private Board Board;
 
+    // cards
+    private CardManager CurrentCardManager;
+
     // player
     [SerializeField] private Unit PlayerPrefab;
     private Unit CurrentPlayer;
-    private List<CardInstance> HandCards;
-    private List<CardInstance> DrawPile;
-    private List<CardInstance> DiscardPile;
 
     // enemies
     [SerializeField] List<Unit> EnemyPrefabs;
@@ -31,8 +31,9 @@ public class BattleManager : MonoBehaviour
         Queue = new BattleActionQueue();
     }
 
-    public void Init(RuntimeBattleState RTBattleState)
+    public void Init(RuntimeBattleState RTBattleState, CardManager cardManager)
     {
+        CurrentCardManager = cardManager;
         CurrentBattleState = RTBattleState;
 
         // chess board
@@ -56,44 +57,220 @@ public class BattleManager : MonoBehaviour
                     break;
             }
         }
-
-        // temporal test
-        Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
-        StartCoroutine(Queue.Execute());
     }
 
     public void GameStart()
     {
-        PlayerTurn();
+        ChangeState(BattleState.PlayerTurnStart);
     }
 
-    private void PlayerTurn()
+    private void StartPlayerTurn()
     {
-        CurrentBattleState.State = BattleState.PlayerTurn;
+        // Settle Dots dmg
+
+        CurrentBattleState.CurrentTurn++;
+
+        CurrentCardManager.DrawRandomCards(2, Queue);
+
+        if (Queue.HasActions)
+        {
+            ChangeState(BattleState.PlayerTakingActions);
+        }
+        else
+        {
+            ChangeState(BattleState.WaitingForPlayerInput);
+        }
+        //CurrentCardManager.DrawRandomCard(2);
+        //Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
+        //ChangeState(BattleState.WaitingForPlayerInput);
     }
 
-    private void EnemyTurn()
+    private IEnumerator ExecuteActions()
     {
-        CurrentBattleState.State = BattleState.EnemyTurn;
+        yield return Queue.Execute();
+
+        if (CheckBattleEnd())
+        {
+            ChangeState(BattleState.BattleEnd);
+            
+        } else if(CurrentBattleState.State == BattleState.EnemyTakingActions)
+        {
+            ChangeState(BattleState.EnemyTurnEnd);
+        }
+        else if(CurrentBattleState.State == BattleState.PlayerTakingActions)
+        {
+            ChangeState(BattleState.WaitingForPlayerInput);
+        }
     }
 
-    private void PlayingAnimations()
+    public void TryEndTurn()
     {
-        CurrentBattleState.State = BattleState.TakingActions;
+        if(CanChangeTo(BattleState.PlayerTurnEnd))
+        {
+            ChangeState(BattleState.PlayerTurnEnd);
+        }
     }
 
-    private void BattleEnd()
+    private void EndPlayerTurn()
     {
-        CurrentBattleState.State = BattleState.BattleEnd;
+
+        // settle dots on player or something
+        ChangeState(BattleState.EnemyTurnStart);
     }
 
+    private void StartEnemyTurn()
+    {
+        Queue.Enqueue(new MoveAction(Board, CurrentEnemies[0], new Vector2Int(Random.Range(0, 5), Random.Range(0, 5))));
+        if (Queue.HasActions)
+        {
+            ChangeState(BattleState.EnemyTakingActions);
+        }
+        else
+        {
+            ChangeState(BattleState.EnemyTurnEnd);
+        }
+    }
+
+    private void EndEnemyTurn()
+    {
+        ChangeState(BattleState.PlayerTurnStart);
+    }
+    private void EndBattle()
+    {
+
+    }
+
+    private bool CheckBattleEnd()
+    {
+        return CurrentBattleState.Player.CurrentHP <= 0 || CurrentBattleState.Enemies.Count <= 0;
+    }
+
+    private void ChangeState(BattleState nextState)
+    {
+        if (!CanChangeTo(nextState))
+        {
+            Debug.LogWarning($"Invalid state change: {CurrentBattleState.State} -> {nextState}");
+            return;
+        }
+
+        CurrentBattleState.State = nextState;
+
+        switch (nextState)
+        {
+            case BattleState.Initializing:
+                DebugInfo("to Initializing");
+                break;
+
+            case BattleState.PlayerTurnStart:
+                DebugInfo("to PlayerTurnStart");
+                StartPlayerTurn();
+                break;
+
+            case BattleState.WaitingForPlayerInput:
+                DebugInfo("to WaitingForPlayerInput");
+                break;
+
+            case BattleState.PlayerTakingActions:
+                DebugInfo("to PlayerTakingActions");
+                StartCoroutine(ExecuteActions());
+                break;
+
+            case BattleState.PlayerTurnEnd:
+                DebugInfo("to PlayerTurnEnd");
+                EndPlayerTurn();
+                break;
+
+            case BattleState.EnemyTurnStart:
+                DebugInfo("to EnemyTurnStart");
+                StartEnemyTurn();
+                break;
+
+            case BattleState.EnemyTakingActions:
+                DebugInfo("to EnemyTakingActions");
+                StartCoroutine(ExecuteActions());
+                break;
+
+            case BattleState.EnemyTurnEnd:
+                DebugInfo("to EnemyTurnEnd");
+                EndEnemyTurn();
+                break;
+
+            case BattleState.BattleEnd:
+                DebugInfo("to BattleEnd");
+                EndBattle();
+                break;
+        }
+    }
+
+    private void DebugInfo(string msg)
+    {
+        Debug.Log(msg);
+    }
+
+
+    private bool CanChangeTo(BattleState nextState)
+    {
+        BattleState currentState = CurrentBattleState.State;
+
+        switch (currentState)
+        {
+            case BattleState.Initializing:
+                return nextState == BattleState.PlayerTurnStart
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.PlayerTurnStart:
+                return nextState == BattleState.WaitingForPlayerInput
+                    || nextState == BattleState.BattleEnd
+                    || nextState == BattleState.PlayerTakingActions;
+
+            case BattleState.WaitingForPlayerInput:
+                return nextState == BattleState.PlayerTakingActions
+                    || nextState == BattleState.PlayerTurnEnd
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.PlayerTakingActions:
+                return nextState == BattleState.WaitingForPlayerInput
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.PlayerTurnEnd:
+                return nextState == BattleState.EnemyTurnStart
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.EnemyTurnStart:
+                return nextState == BattleState.EnemyTakingActions
+                    || nextState == BattleState.EnemyTurnEnd
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.EnemyTakingActions:
+                return nextState == BattleState.EnemyTurnEnd
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.EnemyTurnEnd:
+                return nextState == BattleState.PlayerTurnStart
+                    || nextState == BattleState.BattleEnd;
+
+            case BattleState.BattleEnd:
+                return false;
+
+            default:
+                return false;
+        }
+    }
 }
+
 
 public enum BattleState
 {
     Initializing,
-    PlayerTurn,
-    TakingActions,
-    EnemyTurn,
+
+    PlayerTurnStart,
+    WaitingForPlayerInput,
+    PlayerTakingActions,
+    PlayerTurnEnd,
+
+    EnemyTurnStart,
+    EnemyTakingActions,
+    EnemyTurnEnd,
+
     BattleEnd
 }

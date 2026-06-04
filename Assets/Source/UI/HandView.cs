@@ -17,16 +17,12 @@ public class HandView : MonoBehaviour
         HandCards = new();
     }
 
-    void Update()
-    {
-        CurrentCardRenderer.UpdateTexture();
-    }
-
     public void DrawCards(List<CardInstance> instances)
     {
         for (int i = 0; i < instances.Count; i++) {
-            CardPrefab.Init(instances[i], CurrentCardRenderer);
-            HandCards.Add(Instantiate(CardPrefab, CardsRoot, false));
+            CardView cardView = Instantiate(CardPrefab, CardsRoot, false);
+            cardView.Init(instances[i], CurrentCardRenderer);
+            HandCards.Add(cardView);
         }
         LayoutHandCards();
     }

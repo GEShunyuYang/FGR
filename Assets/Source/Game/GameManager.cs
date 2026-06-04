@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Search;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -65,11 +64,12 @@ public class GameManager : MonoBehaviour
             State = BattleState.Initializing
         };
 
-        CurrentBattleManager.Init(RTBS);
-        CurrentBattleInputController.Init(CurrentBattleManager);
         CurrentCardManager.Init(RTBS);
         CurrentCardRenderer.Init(CurrentCardManager.instances);
         CurrentUIManager.Init(CurrentCardRenderer);
+        CurrentBattleManager.Init(RTBS, CurrentCardManager);
+        CurrentBattleInputController.Init(CurrentBattleManager);
+
 
         CurrentBattleManager.GameStart();
     }
