@@ -22,13 +22,14 @@ public class CardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     public void OnBeginDrag(PointerEventData pointerEventData)
     {
         originalPosition = transform.position;
+        RawImage.raycastTarget = false;
     }
 
     public void OnDrag(PointerEventData pointerEventData) {
         if (pointerEventData.dragging)
         {
             transform.position = pointerEventData.position;
-            RawImage.raycastTarget = false;
+            
         }
     }
 
@@ -40,13 +41,13 @@ public class CardView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 
     public void OnPointerEnter(PointerEventData pointerEventData)
     {
-        this.transform.position += new Vector3(0, 1f, 0f);
+        this.transform.position += new Vector3(0, 170f, 0f);
         this.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
     }
 
     public void OnPointerExit(PointerEventData pointerEventData)
     {
-        this.transform.position -= new Vector3(0, 1f, 0);
+        this.transform.position -= new Vector3(0, 170f, 0);
         this.transform.localScale = new Vector3(1f, 1f, 1f);
     }
 }

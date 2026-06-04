@@ -30,7 +30,7 @@ public class CardManager : MonoBehaviour
         if (once)
         {
             once = !once;
-            EventsHandler.TriggerEvent("1", instances);
+            EventsHandler.TriggerEvent(UIEvents.DRAW_CARD, instances);
         }
     }
 }

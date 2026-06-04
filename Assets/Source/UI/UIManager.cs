@@ -37,11 +37,11 @@ public class UIManager : MonoBehaviour
 
     void OnEnable()
     {
-        EventsHandler.RegisterEvent<List<CardInstance>>("1", OnDrawCard);
+        EventsHandler.RegisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
     }
 
     void OnDisable()
     {
-        EventsHandler.UnregisterEvent<List<CardInstance>>("1", OnDrawCard);
+        EventsHandler.UnregisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
     }
 }

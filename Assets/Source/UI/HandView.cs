@@ -17,6 +17,11 @@ public class HandView : MonoBehaviour
         HandCards = new();
     }
 
+    void Update()
+    {
+        CurrentCardRenderer.UpdateTexture();
+    }
+
     public void DrawCards(List<CardInstance> instances)
     {
         for (int i = 0; i < instances.Count; i++) {
@@ -36,7 +41,7 @@ public class HandView : MonoBehaviour
         {
             RectTransform rect = HandCards[i].GetComponent<RectTransform>();
 
-            rect.anchoredPosition =  new Vector2(start + i * spacing, 0);
+            rect.anchoredPosition =  new Vector2(start + i * spacing, -150);
         }
     }
 }

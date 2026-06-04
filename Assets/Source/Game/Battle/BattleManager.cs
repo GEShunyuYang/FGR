@@ -31,12 +31,6 @@ public class BattleManager : MonoBehaviour
         Queue = new BattleActionQueue();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public void Init(RuntimeBattleState RTBattleState)
     {
         CurrentBattleState = RTBattleState;
@@ -67,4 +61,39 @@ public class BattleManager : MonoBehaviour
         Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
         StartCoroutine(Queue.Execute());
     }
+
+    public void GameStart()
+    {
+        PlayerTurn();
+    }
+
+    private void PlayerTurn()
+    {
+        CurrentBattleState.State = BattleState.PlayerTurn;
+    }
+
+    private void EnemyTurn()
+    {
+        CurrentBattleState.State = BattleState.EnemyTurn;
+    }
+
+    private void PlayingAnimations()
+    {
+        CurrentBattleState.State = BattleState.TakingActions;
+    }
+
+    private void BattleEnd()
+    {
+        CurrentBattleState.State = BattleState.BattleEnd;
+    }
+
+}
+
+public enum BattleState
+{
+    Initializing,
+    PlayerTurn,
+    TakingActions,
+    EnemyTurn,
+    BattleEnd
 }

@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class CardRenderer : MonoBehaviour
 {
-    [SerializeField] private Renderer RTPrefab;
+    [SerializeField] private CardRenderView RTPrefab;
 
     public Dictionary<CardInstance, CardRenderInfo> CardInstanceViewDictionary { get; private set; }
 
     [SerializeField] private Camera CardsCamera;
 
+    private List<CardRenderView> CRVs;
     public RenderTexture CardsRenderTexture { get; private set; }
 
     private Vector3 CardsPosition = new Vector3(-100, 0, 0);
@@ -22,6 +23,7 @@ public class CardRenderer : MonoBehaviour
         }
 
         CardInstanceViewDictionary = new();
+        CRVs = new();
     }
 
     public void Init(List<CardInstance> instances)
@@ -29,7 +31,7 @@ public class CardRenderer : MonoBehaviour
         int columns = Mathf.CeilToInt(Mathf.Sqrt(instances.Count));
         int rows = Mathf.CeilToInt(instances.Count / (float)columns);
 
-        Bounds bounds = RTPrefab.bounds;
+        Bounds bounds = RTPrefab.CardRenderer.bounds;
         float cardWidth = bounds.size.x;
         float cardHeight = bounds.size.y;
 
@@ -61,8 +63,10 @@ public class CardRenderer : MonoBehaviour
             viewinfo.UVRect = rect;
             viewinfo.AtlasIndex = i;
 
-            Renderer render = Instantiate(RTPrefab, pos, RTPrefab.transform.rotation);
-            render.transform.SetParent(transform, false);
+            CardRenderView CRV = Instantiate(RTPrefab, pos, RTPrefab.transform.rotation);
+            CRV.transform.SetParent(transform, false);
+            CRV.Bind(instances[i]);
+            CRVs.Add(CRV);
 
             CardInstanceViewDictionary.Add(instances[i], viewinfo);
         }
@@ -77,6 +81,9 @@ public class CardRenderer : MonoBehaviour
 
     public void UpdateTexture()
     {
+        for (int i = 0; i < CRVs.Count; i++) {
+            CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);
+        }
         CardsCamera.Render();
     }
 }

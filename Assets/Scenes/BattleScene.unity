@@ -317,8 +317,8 @@ Camera:
   m_GameObject: {fileID: 38742052}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -1490,7 +1490,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 444d3c5ba0ce35f4483d512b1d760433, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RTPrefab: {fileID: 5535974663625675387, guid: 6d58372c01cca5d49a330483199b9dcc, type: 3}
+  RTPrefab: {fileID: 1801866715965281817, guid: 6d58372c01cca5d49a330483199b9dcc, type: 3}
   CardsCamera: {fileID: 38742053}
 --- !u!4 &157839783 stripped
 Transform:
@@ -5752,6 +5752,50 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1088741441}
   m_Mesh: {fileID: -65089136688577580, guid: 537252d778b1b0b44a561299081bb8d8, type: 3}
+--- !u!1 &1090325675
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1090325676}
+  - component: {fileID: 1090325677}
+  m_Layer: 0
+  m_Name: BattleInputController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1090325676
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090325675}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1333417424}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1090325677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1090325675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1358a762546d7004594096d5f38be912, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1099782977 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8417130589522113795, guid: 87e0e5ec1a57da64abd878b98c2f28ff, type: 3}
@@ -6508,7 +6552,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1333417424}
   - component: {fileID: 1333417425}
-  - component: {fileID: 1333417426}
   m_Layer: 0
   m_Name: --Battle--
   m_TagString: Untagged
@@ -6528,25 +6571,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1090325676}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1333417425
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1333417423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90a970e5a1911384290eafbffc7d3c8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PlayerPrefab: {fileID: 7876660565705508763, guid: 7ce9bdbe527f38349811f7f2943360aa, type: 3}
-  EnemyPrefabs:
-  - {fileID: 8500302891820945487, guid: bb380bf1e7ed14e438fa6c2c3620645e, type: 3}
---- !u!114 &1333417426
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

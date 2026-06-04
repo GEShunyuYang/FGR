@@ -39,6 +39,8 @@ public class GameManager : MonoBehaviour
         CardRenderer CurrentCardRenderer = FindFirstObjectByType<CardRenderer>();
         CardManager CurrentCardManager = FindFirstObjectByType<CardManager>();
         UIManager CurrentUIManager = FindFirstObjectByType<UIManager>();
+        BattleInputController CurrentBattleInputController = FindFirstObjectByType<BattleInputController>();
+
         // temporal test
         RuntimeBattleState RTBS = new RuntimeBattleState
         {
@@ -59,13 +61,17 @@ public class GameManager : MonoBehaviour
 
                     GridPos = new Vector2Int(5, 3)
                 }},
-            CurrentCardDeck = TestCardDeck
+            CurrentCardDeck = TestCardDeck,
+            State = BattleState.Initializing
         };
 
         CurrentBattleManager.Init(RTBS);
+        CurrentBattleInputController.Init(CurrentBattleManager);
         CurrentCardManager.Init(RTBS);
         CurrentCardRenderer.Init(CurrentCardManager.instances);
         CurrentUIManager.Init(CurrentCardRenderer);
+
+        CurrentBattleManager.GameStart();
     }
 }
 
@@ -74,6 +80,7 @@ public class RuntimeBattleState
 {
     // battle
     public int CurrentTurn;
+    public BattleState State;
     public UnitRuntime Player;
     public List<UnitRuntime> Enemies;
     // card
