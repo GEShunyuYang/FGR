@@ -14,10 +14,53 @@ public class CardRenderView : MonoBehaviour
 
     [SerializeField] private Renderer CRenderer;
 
+    private CardInstance UsedCardInstance;
+
     public void Bind(CardInstance card)
     {
-        cardName.text = card.Data.CardName;
-        cardCost.text = card.CurrentCost.ToString();
-        description.text = card.Data.Description;
+        UsedCardInstance = card;
+        RefreshText();
+    }
+
+    private void OnEnable()
+    {
+        LocalizationManager.Instance.LanguageChanged += RefreshText;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationManager.Instance.LanguageChanged -= RefreshText;
+    }
+
+    private void RefreshText()
+    {
+        // debug
+        if (UsedCardInstance == null)
+        {
+            Debug.LogWarning("UsedCardInstance is null");
+            return;
+        }
+
+        if (UsedCardInstance.Data == null)
+        {
+            Debug.LogWarning("UsedCardInstance.Data is null");
+            return;
+        }
+
+        if (LocalizationManager.Instance == null)
+        {
+            Debug.LogWarning("LocalizationManager.Instance is null");
+            return;
+        }
+
+        if (cardName == null || description == null || cardCost == null)
+        {
+            Debug.LogWarning("TMP references are not assigned on CardRenderView");
+            return;
+        }
+
+        cardName.text = LocalizationManager.Instance.GetText(UsedCardInstance.Data.CardNameKey);
+        description.text = LocalizationManager.Instance.GetText(UsedCardInstance.Data.DescriptionKey);
+        cardCost.text = UsedCardInstance.CurrentCost.ToString();
     }
 }

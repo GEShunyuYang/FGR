@@ -6,12 +6,17 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Card", menuName = "Card/Card Data")]
 public class CardData : ScriptableObject
 {
-    public string CardName;
+    public string CardId;
+
+    public string CardNameKey;
 
     public int BaseCost;
 
-    [TextArea]
-    public string Description;
+    public string DescriptionKey;
+
+    public List<CardEffect> Effects;
+
+    public List<CardCondition> Conditions;
 }
 
 public class CardRenderInfo

@@ -1,0 +1,7 @@
+﻿Key,zh,en
+card.melee.name,近战攻击,Melee Attack
+card.melee.desc,范围{range}，造成{damage}点伤害,Range {range}. Deal {damage} damage
+card.heavy.name,重击,Heavy Strike
+card.heavy.desc,范围{range}，造成{damage}点伤害,Range {range}. Deal {damage} damage
+card.puncture.name,穿刺攻击,Puncture Attack
+card.puncture.desc,直线范围{range}，造成{damage}点伤害,Linear range {range}. Deal {damage} damage

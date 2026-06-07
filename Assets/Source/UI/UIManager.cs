@@ -33,15 +33,19 @@ public class UIManager : MonoBehaviour
         CurrentHandView.DrawCards(instances);
     }
 
-
+    private void OnPlayCard(CardInstance instances) {
+        CurrentHandView.RemoveCard(instances);
+    }
 
     void OnEnable()
     {
         EventsHandler.RegisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
+        EventsHandler.RegisterEvent<CardInstance>(CardEvents.PLAY_CARD, OnPlayCard);
     }
 
     void OnDisable()
     {
         EventsHandler.UnregisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
+        EventsHandler.UnregisterEvent<CardInstance>(CardEvents.PLAY_CARD, OnPlayCard);
     }
 }

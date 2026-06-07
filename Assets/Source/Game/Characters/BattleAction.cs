@@ -46,3 +46,19 @@ public class MoveAction : BattleAction
     }
 }
 
+public class DamageAction : BattleAction
+{
+    private Unit target;
+    private float damage;
+
+    public DamageAction(Unit target, float damage)
+    {
+        this.target = target;
+        this.damage = damage;
+    }
+
+    public override IEnumerator Execute()
+    {
+        yield return target.TakeDamage(damage);
+    }
+}

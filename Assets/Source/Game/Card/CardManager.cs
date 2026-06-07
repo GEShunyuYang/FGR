@@ -12,6 +12,8 @@ public class CardManager : MonoBehaviour
 
     private RuntimeBattleState CurrentBattleState;
 
+    private int HandCardsCountLimit;
+
     void Awake()
     {
         instances = new();
@@ -19,13 +21,33 @@ public class CardManager : MonoBehaviour
         DrawPile = new();
         DiscardPile = new();
     }
+
+    public void PlayCard(CardInstance card)
+    {
+        if(!HandCards.Remove(card))
+        {
+            Debug.LogWarning("Played an inexist hand card");
+        }
+        
+        DiscardPile.Add(card);
+
+        EventsHandler.TriggerEvent(CardEvents.PLAY_CARD, card);
+    }
+
     public void Init(RuntimeBattleState RTBattleState)
     {
         CurrentBattleState = RTBattleState;
+        HandCardsCountLimit = RTBattleState.MaxHandCount;
         for (int i = 0; i < CurrentBattleState.CurrentCardDeck.Cards.Count; i++)
         {
+            CardData data = CurrentBattleState.CurrentCardDeck.Cards[i];
+            if (data == null)
+            {
+                Debug.LogWarning($"CardDeck has null card at index {i}.");
+                continue;
+            }
             CardInstance instance = new();
-            instance.Data = CurrentBattleState.CurrentCardDeck.Cards[i];
+            instance.Data = data;
             instance.CurrentCost = instance.Data.BaseCost;
             instances.Add(instance);
             DrawPile.Add(instance);
@@ -37,7 +59,11 @@ public class CardManager : MonoBehaviour
     {
         List<CardInstance> DrawnCards = new();
 
-        for (int i = 0; i < N; i++)
+        int count = Mathf.Min(N, HandCardsCountLimit - HandCards.Count);
+
+        if (count <= 0) return;
+
+        for (int i = 0; i < count; i++)
         {
             if(DrawPile.Count == 0)
             {
@@ -57,8 +83,14 @@ public class CardManager : MonoBehaviour
             //Queue.Enqueue(new DrawCardAction(card));
             DrawPile.RemoveAt(index);
         }
-        EventsHandler.TriggerEvent(UIEvents.DRAW_CARD, DrawnCards);
+
+        if (DrawnCards.Count == 0)
+        {
+            return;
+        }
+
         HandCards.AddRange(DrawnCards);
+        EventsHandler.TriggerEvent(UIEvents.DRAW_CARD, DrawnCards);
     }
 
     private void ShuffleAndReplenishCards(BattleActionQueue Queue)

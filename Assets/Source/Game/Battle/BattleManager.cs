@@ -22,6 +22,20 @@ public class BattleManager : MonoBehaviour
     private RuntimeBattleState CurrentBattleState;
     private BattleActionQueue Queue; // animation sequence
 
+    private bool HasMovedThisTurn;
+    private bool CanUndoMove;
+    private Vector2Int PreviousPlayerCell;
+    private Vector2Int LastMovedCell;
+
+    private enum BoardPreviewMode
+    {
+        None,
+        Move,
+        Card
+    }
+
+    private BoardPreviewMode CurrentPreviewMode;
+
     private void Awake()
     {
         if (!PlayerPrefab || EnemyPrefabs.Count == 0) Debug.LogError("Battle Manager is not set");
@@ -66,6 +80,8 @@ public class BattleManager : MonoBehaviour
 
     private void StartPlayerTurn()
     {
+        HasMovedThisTurn = false;
+        CanUndoMove = false;
         // Settle Dots dmg
 
         CurrentBattleState.CurrentTurn++;
@@ -80,9 +96,6 @@ public class BattleManager : MonoBehaviour
         {
             ChangeState(BattleState.WaitingForPlayerInput);
         }
-        //CurrentCardManager.DrawRandomCard(2);
-        //Queue.Enqueue(new MoveAction(Board, CurrentPlayer, new Vector2Int(3, 4)));
-        //ChangeState(BattleState.WaitingForPlayerInput);
     }
 
     private IEnumerator ExecuteActions()
@@ -107,6 +120,7 @@ public class BattleManager : MonoBehaviour
     {
         if(CanChangeTo(BattleState.PlayerTurnEnd))
         {
+            CanUndoMove = false;
             ChangeState(BattleState.PlayerTurnEnd);
         }
     }
@@ -140,9 +154,85 @@ public class BattleManager : MonoBehaviour
 
     }
 
+    public bool TryPlayCard(CardInstance card, Unit target)
+    {
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput)
+        {
+            Debug.LogWarning($"Cannot play card while state is {CurrentBattleState.State}");
+            return false;
+        }
+
+        if (card == null || target == null)
+        {
+            return false;
+        }
+
+        CardEffectContext context = new(card, CurrentPlayer, target,
+            Board, CurrentBattleState, CurrentCardManager);
+
+        if (!CanPlayCard(context))
+        {
+            return false;
+        }
+
+        /*
+        if (!IsValidTarget(card, target))
+        {
+            return false;
+        }*/
+
+        //ClearCardPreview(); // clear range preview
+
+        CanUndoMove = false;
+
+        CurrentCardManager.PlayCard(card);
+
+        BuildCardActions(context);
+
+        if (Queue.HasActions)
+        {
+            ChangeState(BattleState.PlayerTakingActions);
+        }
+
+        return true;
+    }
+
+    private bool CanPlayCard(CardEffectContext context)
+    {
+        foreach (CardCondition condition in context.Card.Data.Conditions)
+        {
+            if (!condition.IsSatisfied(context))
+            {
+                Debug.LogWarning($"Violate {condition.GetType()}");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void BuildCardActions(CardEffectContext context)
+    {
+        foreach(CardEffect effect in context.Card.Data.Effects) {
+            effect.BuildActions(context, Queue);
+        }
+    }
+
     private bool CheckBattleEnd()
     {
-        return CurrentBattleState.Player.CurrentHP <= 0 || CurrentBattleState.Enemies.Count <= 0;
+        // deal deaths
+        for(int i = CurrentEnemies.Count - 1; i >= 0; i--)
+        {
+            Unit Enemy = CurrentEnemies[i];
+
+            if(Enemy.State != UnitState.Dead)
+            {
+                continue;
+            }
+
+            CurrentEnemies.RemoveAt(i);
+            Destroy(Enemy.gameObject);
+        }
+        return CurrentEnemies.Count <= 0 || CurrentPlayer.State == UnitState.Dead;
     }
 
     private void ChangeState(BattleState nextState)
@@ -168,6 +258,7 @@ public class BattleManager : MonoBehaviour
 
             case BattleState.WaitingForPlayerInput:
                 DebugInfo("to WaitingForPlayerInput");
+                RefreshInputPreview();
                 break;
 
             case BattleState.PlayerTakingActions:
@@ -255,6 +346,202 @@ public class BattleManager : MonoBehaviour
             default:
                 return false;
         }
+    }
+
+    public void ShowCardPreview(CardInstance card)
+    {
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput || card == null)
+        {
+            return;
+        }
+
+        List<Vector2Int> cells = GetPreviewCells(card);
+
+        Board.SetHighlightCells(cells, BoardHighlightMode.Card);
+        CurrentPreviewMode = BoardPreviewMode.Card;
+    }
+
+    private void ShowMovePreview()
+    {
+        List<Vector2Int> cells = GetMovePreviewCells();
+
+        Board.SetHighlightCells(cells, BoardHighlightMode.Move);
+        CurrentPreviewMode = BoardPreviewMode.Move;
+    }
+
+    private List<Vector2Int> GetMovePreviewCells()
+    {
+        List<Vector2Int> cells = new();
+        Vector2Int origin = CurrentPlayer.GridPos;
+        int range = CurrentPlayer.MoveRange;
+
+        for (int x = 0; x < Board.BoardWidth; x++)
+        {
+            for (int y = 0; y < Board.BoardHeight; y++)
+            {
+                Vector2Int cell = new Vector2Int(x, y);
+
+                if (!IsValidMoveCell(cell))
+                {
+                    continue;
+                }
+
+                cells.Add(cell);
+            }
+        }
+
+        return cells;
+    }
+
+    public void ClearCardPreview()
+    {
+        if (CurrentPreviewMode != BoardPreviewMode.Card)
+        {
+            return;
+        }
+
+        RefreshInputPreview();
+    }
+
+    private void RefreshInputPreview()
+    {
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput)
+        {
+            Board.ClearHighlights();
+            CurrentPreviewMode = BoardPreviewMode.None;
+            return;
+        }
+
+        if (!HasMovedThisTurn)
+        {
+            ShowMovePreview();
+        }
+        else
+        {
+            Board.ClearHighlights();
+            CurrentPreviewMode = BoardPreviewMode.None;
+        }
+    }
+
+    private List<Vector2Int> GetPreviewCells(CardInstance card)
+    {
+        List<Vector2Int> cells = new();
+
+        if (!TryGetRangeCondition(card, out RangeCondition rangeCondition))
+        {
+            return cells;
+        }
+
+        int range = rangeCondition.MaxRangeValue;
+        Vector2Int origin = CurrentPlayer.GridPos;
+
+        for (int x = 0; x < Board.BoardWidth; x++)
+        {
+            for (int y = 0; y < Board.BoardHeight; y++)
+            {
+                Vector2Int cell = new Vector2Int(x, y);
+
+                int distance = Mathf.Abs(cell.x - origin.x)
+                             + Mathf.Abs(cell.y - origin.y);
+
+                if (distance <= range)
+                {
+                    cells.Add(cell);
+                }
+            }
+        }
+
+        return cells;
+    }
+
+    private bool TryGetRangeCondition(CardInstance card, out RangeCondition rangeCondition)
+    {
+        rangeCondition = null;
+
+        if (card == null || card.Data == null || card.Data.Conditions == null)
+        {
+            return false;
+        }
+
+        foreach (CardCondition condition in card.Data.Conditions)
+        {
+            if (condition is RangeCondition range)
+            {
+                rangeCondition = range;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryMovePlayer(Vector2Int targetCell)
+    {
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput)
+        {
+            return false;
+        }
+
+        if (HasMovedThisTurn)
+        {
+            Debug.LogWarning("Player has already moved this turn.");
+            return false;
+        }
+        
+        if (!IsValidMoveCell(targetCell))
+        {
+            return false;
+        }
+
+        PreviousPlayerCell = CurrentPlayer.GridPos;
+        LastMovedCell = targetCell;
+
+        HasMovedThisTurn = true;
+        CanUndoMove = true;
+
+        Queue.Enqueue(new MoveAction(Board, CurrentPlayer, targetCell));
+        ChangeState(BattleState.PlayerTakingActions);
+
+        return true;
+    }
+
+    private bool IsValidMoveCell(Vector2Int target)
+    {
+        if(target.x < 0 || target.y < 0 || target.x >= Board.BoardWidth || target.y >= Board.BoardHeight)
+        {
+            return false;
+        }
+
+        if (target == CurrentPlayer.GridPos) return false;
+
+        if (!Board.IsInside(target)) return false;
+
+        if (Board.IsOccupied(target)) return false;
+
+        int distance = Mathf.Abs(CurrentPlayer.GridPos.x - target.x)
+                     + Mathf.Abs(CurrentPlayer.GridPos.y - target.y);
+
+        return distance <= CurrentPlayer.MoveRange;
+    }
+
+    public bool TryUndoMove()
+    {
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput)
+        {
+            return false;
+        }
+
+        if (!HasMovedThisTurn || !CanUndoMove)
+        {
+            return false;
+        }
+
+        CurrentPlayer.TeleportTo(Board, PreviousPlayerCell);
+
+        HasMovedThisTurn = false;
+        CanUndoMove = false;
+
+        return true;
     }
 }
 

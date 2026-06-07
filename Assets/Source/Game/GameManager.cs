@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
         {
             Player = new UnitRuntime
             {
-                Config = new UnitConfig { MaxHealth = 100f },
+                Config = new UnitConfig { MaxHealth = 100f, MoveRange = 3 },
 
                 CurrentHP = 100,
 
@@ -54,14 +54,15 @@ public class GameManager : MonoBehaviour
             Enemies = new List<UnitRuntime> {
                 new UnitRuntime
                 {
-                    Config = new UnitConfig{type = EnemyType.DEFAULT ,MaxHealth = 90f },
+                    Config = new UnitConfig{type = EnemyType.DEFAULT ,MaxHealth = 90f, MoveRange = 3 },
 
                     CurrentHP = 90,
 
                     GridPos = new Vector2Int(5, 3)
                 }},
             CurrentCardDeck = TestCardDeck,
-            State = BattleState.Initializing
+            State = BattleState.Initializing,
+            MaxHandCount = 6
         };
 
         CurrentCardManager.Init(RTBS);
@@ -84,5 +85,6 @@ public class RuntimeBattleState
     public UnitRuntime Player;
     public List<UnitRuntime> Enemies;
     // card
+    public int MaxHandCount;
     public CardDeck CurrentCardDeck;
 }

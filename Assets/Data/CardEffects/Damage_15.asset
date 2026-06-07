@@ -9,10 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5918c600a0b10d4f8f68ad260b11196, type: 3}
-  m_Name: MeleeAttack
+  m_Script: {fileID: 11500000, guid: 01d2c02776c49414fbe35f3d28d4f5e2, type: 3}
+  m_Name: Damage_15
   m_EditorClassIdentifier: 
-  CardID: MeleeAttack
-  CardName: Melee Attack
-  BaseCost: 1
-  Description: Melee Attack!!
+  Damage: 15
