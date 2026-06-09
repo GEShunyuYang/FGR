@@ -1,4 +1,4 @@
-﻿Id,NameKey,Cost,DescriptionKey,Effects,Conditions
-melee,card.melee.name,1,,Damage:20,Range:1|EnemyTarget
-heavy,card.heavy.name,2,card.heavy.desc,Damage:30,Range:1|EnemyTarget
-puncture,card.puncture.name,2,card.heavy.desc,Damage:15,Range:3|EnemyTarget
+﻿Id,NameKey,Cost,DescriptionKey,Effects,TargetingRule,Conditions
+melee,card.melee.name,1,,Damage:20,Range:2,EnemyTarget
+heavy,card.heavy.name,2,card.heavy.desc,Damage:30,Range:1,EnemyTarget
+puncture,card.puncture.name,2,card.heavy.desc,LinearDamage:15,LinearRange:3,EnemyTarget

@@ -16,8 +16,8 @@ MonoBehaviour:
   CardNameKey: card.puncture.name
   BaseCost: 2
   DescriptionKey: card.heavy.desc
+  TargetingRule: {fileID: 11400000, guid: e593fd99de27aea4b8346a215a61e321, type: 2}
   Effects:
-  - {fileID: 11400000, guid: 8c32c6d1c513d14459c74cf91e61867a, type: 2}
+  - {fileID: 11400000, guid: 1fd2ec5011dd9064095cbfd67cb3aa14, type: 2}
   Conditions:
-  - {fileID: 11400000, guid: c5e4ad76ffb705144bfc0a522ac31375, type: 2}
   - {fileID: 11400000, guid: 814ced348a36a3443ad548633bece0bd, type: 2}

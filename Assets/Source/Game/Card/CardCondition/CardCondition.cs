@@ -4,5 +4,5 @@ using UnityEngine;
 
 public abstract class CardCondition : ScriptableObject
 {
-    public abstract bool IsSatisfied(CardEffectContext context);
+    public abstract bool IsSatisfied(CardPlayContext context);
 }

@@ -16,8 +16,8 @@ MonoBehaviour:
   CardNameKey: card.melee.name
   BaseCost: 1
   DescriptionKey: card.melee.desc
+  TargetingRule: {fileID: 11400000, guid: be5d91bf0fe31f340a104a541f572d22, type: 2}
   Effects:
   - {fileID: 11400000, guid: e2a1ed21abfc3674a8236679ae71da95, type: 2}
   Conditions:
-  - {fileID: 11400000, guid: 5c3d65bab1602424a8d61436fec76d0d, type: 2}
   - {fileID: 11400000, guid: 814ced348a36a3443ad548633bece0bd, type: 2}

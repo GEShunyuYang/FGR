@@ -7,10 +7,23 @@ public class DamageEffect : CardEffect
 {
     [SerializeField] private float Damage = 10f;
 
-    public override void BuildActions(CardEffectContext context, BattleActionQueue queue)
-    {
-        if (context.Target == null) return;
+    public float CardDamage => Damage;
 
-        queue.Enqueue(new DamageAction(context.Target, Damage));
+    public override void BuildActions(CardPlayContext context, BattleActionQueue queue)
+    {
+        if (context.Card.Data.TargetingRule == null) return;
+
+        List<Vector2Int> impactCells = context.Card.Data.TargetingRule.GetImpactCells(context);
+
+        foreach (Vector2Int cell in impactCells)
+        {
+            Unit unit = context.Board.GetOccupant(cell);
+
+            if (unit == null) continue;
+
+            float finalDamage = context.DMGResolver.Resolve(context, Damage);
+
+            queue.Enqueue(new DamageAction(unit, Damage));
+        }
     }
 }

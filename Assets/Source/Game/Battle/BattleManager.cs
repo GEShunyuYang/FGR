@@ -21,6 +21,7 @@ public class BattleManager : MonoBehaviour
     // gameplay
     private RuntimeBattleState CurrentBattleState;
     private BattleActionQueue Queue; // animation sequence
+    private DamageResolver DMGResolver;
 
     private bool HasMovedThisTurn;
     private bool CanUndoMove;
@@ -42,7 +43,8 @@ public class BattleManager : MonoBehaviour
 
         CurrentEnemies = new List<Unit>();
         Board = FindFirstObjectByType<Board>();
-        Queue = new BattleActionQueue();
+        Queue = new();
+        DMGResolver = new();
     }
 
     public void Init(RuntimeBattleState RTBattleState, CardManager cardManager)
@@ -82,6 +84,8 @@ public class BattleManager : MonoBehaviour
     {
         HasMovedThisTurn = false;
         CanUndoMove = false;
+        CurrentBattleState.CurrentStamina = CurrentBattleState.MaxStamina;
+        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, CurrentBattleState.CurrentStamina / (float)CurrentBattleState.MaxStamina);
         // Settle Dots dmg
 
         CurrentBattleState.CurrentTurn++;
@@ -167,21 +171,23 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        CardEffectContext context = new(card, CurrentPlayer, target,
-            Board, CurrentBattleState, CurrentCardManager);
+        CardPlayContext context = new(card, CurrentPlayer, target,
+            Board, CurrentBattleState, CurrentCardManager, DMGResolver);
+
+        if (CurrentBattleState.CurrentStamina < card.CurrentCost)
+        {
+            Debug.LogWarning("Not enough stamina.");
+            return false;
+        }
+
 
         if (!CanPlayCard(context))
         {
             return false;
         }
 
-        /*
-        if (!IsValidTarget(card, target))
-        {
-            return false;
-        }*/
-
-        //ClearCardPreview(); // clear range preview
+        CurrentBattleState.CurrentStamina -= card.CurrentCost;
+        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, CurrentBattleState.CurrentStamina / (float) CurrentBattleState.MaxStamina);
 
         CanUndoMove = false;
 
@@ -197,8 +203,15 @@ public class BattleManager : MonoBehaviour
         return true;
     }
 
-    private bool CanPlayCard(CardEffectContext context)
+    private bool CanPlayCard(CardPlayContext context)
     {
+        if (context.Card.Data.TargetingRule != null && 
+            !context.Card.Data.TargetingRule.IsValidTarget(context))
+        {
+            Debug.LogWarning("Invalid target.");
+            return false;
+        }
+
         foreach (CardCondition condition in context.Card.Data.Conditions)
         {
             if (!condition.IsSatisfied(context))
@@ -210,7 +223,7 @@ public class BattleManager : MonoBehaviour
         return true;
     }
 
-    private void BuildCardActions(CardEffectContext context)
+    private void BuildCardActions(CardPlayContext context)
     {
         foreach(CardEffect effect in context.Card.Data.Effects) {
             effect.BuildActions(context, Queue);
@@ -425,54 +438,63 @@ public class BattleManager : MonoBehaviour
 
     private List<Vector2Int> GetPreviewCells(CardInstance card)
     {
-        List<Vector2Int> cells = new();
-
-        if (!TryGetRangeCondition(card, out RangeCondition rangeCondition))
+        if (card == null || card.Data == null || card.Data.TargetingRule == null)
         {
-            return cells;
+            return new List<Vector2Int>();
         }
 
-        int range = rangeCondition.MaxRangeValue;
-        Vector2Int origin = CurrentPlayer.GridPos;
+        CardPlayContext context = new(card, CurrentPlayer, null, Board,
+            CurrentBattleState, CurrentCardManager, DMGResolver);
 
-        for (int x = 0; x < Board.BoardWidth; x++)
-        {
-            for (int y = 0; y < Board.BoardHeight; y++)
-            {
-                Vector2Int cell = new Vector2Int(x, y);
-
-                int distance = Mathf.Abs(cell.x - origin.x)
-                             + Mathf.Abs(cell.y - origin.y);
-
-                if (distance <= range)
-                {
-                    cells.Add(cell);
-                }
-            }
-        }
-
-        return cells;
+        return card.Data.TargetingRule.GetSelectableCells(context);
     }
 
-    private bool TryGetRangeCondition(CardInstance card, out RangeCondition rangeCondition)
+    public void PreviewCardOnTarget(CardInstance card, Unit target)
     {
-        rangeCondition = null;
-
-        if (card == null || card.Data == null || card.Data.Conditions == null)
+        if (CurrentBattleState.State != BattleState.WaitingForPlayerInput)
         {
-            return false;
+            return;
         }
 
-        foreach (CardCondition condition in card.Data.Conditions)
+        if (card == null || target == null)
         {
-            if (condition is RangeCondition range)
+            EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, card);
+            return;
+        }
+
+        CardPlayContext context = new(card, CurrentPlayer, target, Board,
+            CurrentBattleState, CurrentCardManager, DMGResolver);
+
+        if (!CanPlayCard(context))
+        {
+            EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, card);
+            return;
+        }
+
+        CardDescriptionPreview preview = BuildCardDescriptionPreview(context);
+        EventsHandler.TriggerEvent(CardEvents.PREVIEW_CARD_DESCRIPTION, preview);
+    }
+
+    private CardDescriptionPreview BuildCardDescriptionPreview(CardPlayContext context)
+    {
+        int damage = 0;
+
+        foreach (CardEffect effect in context.Card.Data.Effects)
+        {
+            if (effect is DamageEffect damageEffect)
             {
-                rangeCondition = range;
-                return true;
+                damage = Mathf.RoundToInt(DMGResolver.Resolve(context, damageEffect.CardDamage));
+                break;
+            }
+
+            if (effect is LinearDamageEffect linearDamageEffect)
+            {
+                damage = Mathf.RoundToInt(DMGResolver.Resolve(context, linearDamageEffect.CardDamage));
+                break;
             }
         }
 
-        return false;
+        return new CardDescriptionPreview(context.Card, damage);
     }
 
     public bool TryMovePlayer(Vector2Int targetCell)
@@ -535,16 +557,15 @@ public class BattleManager : MonoBehaviour
         {
             return false;
         }
-
+       
         CurrentPlayer.TeleportTo(Board, PreviousPlayerCell);
 
         HasMovedThisTurn = false;
         CanUndoMove = false;
-
+        ShowMovePreview();
         return true;
     }
 }
-
 
 public enum BattleState
 {

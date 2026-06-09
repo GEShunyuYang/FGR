@@ -14,6 +14,8 @@ public class CardData : ScriptableObject
 
     public string DescriptionKey;
 
+    public CardTargetingRule TargetingRule;
+
     public List<CardEffect> Effects;
 
     public List<CardCondition> Conditions;

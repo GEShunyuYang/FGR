@@ -4,10 +4,10 @@ using UnityEngine;
 
 public abstract class CardEffect : ScriptableObject
 {
-    public abstract void BuildActions(CardEffectContext context, BattleActionQueue queue);
+    public abstract void BuildActions(CardPlayContext context, BattleActionQueue queue);
 }
 
-public class CardEffectContext
+public class CardPlayContext
 {
     public CardInstance Card { get; private set; }
     public Unit Caster { get; private set; }
@@ -16,13 +16,16 @@ public class CardEffectContext
     public RuntimeBattleState BattleState { get; private set; }
     public CardManager CardManager { get; private set; }
 
-    public CardEffectContext(
+    public DamageResolver DMGResolver { get; private set; }
+
+    public CardPlayContext(
         CardInstance card,
         Unit caster,
         Unit target,
         Board board,
         RuntimeBattleState battleState,
-        CardManager cardManager)
+        CardManager cardManager,
+        DamageResolver dMGResolver)
     {
         Card = card;
         Caster = caster;
@@ -30,5 +33,6 @@ public class CardEffectContext
         Board = board;
         BattleState = battleState;
         CardManager = cardManager;
+        DMGResolver = dMGResolver;
     }
 }

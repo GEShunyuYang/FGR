@@ -43,6 +43,8 @@ public class GameManager : MonoBehaviour
         // temporal test
         RuntimeBattleState RTBS = new RuntimeBattleState
         {
+            CurrentTurn = 0,
+            State = BattleState.Initializing,
             Player = new UnitRuntime
             {
                 Config = new UnitConfig { MaxHealth = 100f, MoveRange = 3 },
@@ -60,9 +62,10 @@ public class GameManager : MonoBehaviour
 
                     GridPos = new Vector2Int(5, 3)
                 }},
-            CurrentCardDeck = TestCardDeck,
-            State = BattleState.Initializing,
-            MaxHandCount = 6
+            MaxStamina = 4,
+            CurrentStamina = 4,
+            MaxHandCount = 6,
+            CurrentCardDeck = TestCardDeck
         };
 
         CurrentCardManager.Init(RTBS);
@@ -83,6 +86,8 @@ public class RuntimeBattleState
     public int CurrentTurn;
     public BattleState State;
     public UnitRuntime Player;
+    public int MaxStamina;
+    public int CurrentStamina;
     public List<UnitRuntime> Enemies;
     // card
     public int MaxHandCount;

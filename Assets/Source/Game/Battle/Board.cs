@@ -139,6 +139,16 @@ public class Board : MonoBehaviour
         return IsInside(cell) && Tiles[cell.x, cell.y].Occupant != null;
     }
 
+    public Unit GetOccupant(Vector2Int cell)
+    {
+        if (!IsInside(cell))
+        {
+            return null;
+        }
+
+        return Tiles[cell.x, cell.y].Occupant;
+    }
+
     public bool TryPlaceUnit(Unit unit, Vector2Int cell)
     {
         if (!IsInside(cell) || IsOccupied(cell))

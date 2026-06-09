@@ -11,6 +11,7 @@ public static class CardCsvImporter
     private const string CardOutputDir = "Assets/Data/Cards";
     private const string EffectOutputDir = "Assets/Data/CardEffects";
     private const string ConditionOutputDir = "Assets/Data/CardConditions";
+    private const string TargetingOutputDir = "Assets/Data/CardTargetingRules";
 
     [MenuItem("FGR/Import Cards From CSV")]
     public static void Import()
@@ -18,6 +19,7 @@ public static class CardCsvImporter
         EnsureFolder(CardOutputDir);
         EnsureFolder(EffectOutputDir);
         EnsureFolder(ConditionOutputDir);
+        EnsureFolder(TargetingOutputDir);
 
         string[] lines = File.ReadAllLines(CardCsvPath);
 
@@ -32,7 +34,8 @@ public static class CardCsvImporter
             int cost = int.Parse(columns[2].Trim());
             string descriptionKey = columns[3].Trim();
             string effectsRaw = columns[4].Trim();
-            string conditionsRaw = columns[5].Trim();
+            string targetingRaw = columns[5].Trim();
+            string conditionsRaw = columns[6].Trim();
 
             CardData card = LoadOrCreateCard(id);
 
@@ -44,6 +47,7 @@ public static class CardCsvImporter
             so.FindProperty("DescriptionKey").stringValue = string.IsNullOrWhiteSpace(descriptionKey)
                 ? $"card.{id}.desc"
                 : descriptionKey;
+            so.FindProperty("TargetingRule").objectReferenceValue = ParseTargeting(targetingRaw);
 
             SetObjectReferenceList(so.FindProperty("Effects"), ParseEffects(effectsRaw));
             SetObjectReferenceList(so.FindProperty("Conditions"), ParseConditions(conditionsRaw));
@@ -83,6 +87,28 @@ public static class CardCsvImporter
         return card;
     }
 
+    private static CardTargetingRule ParseTargeting(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+
+        string[] parts = raw.Split(':');
+        string type = parts[0].Trim();
+
+        if (type == "Range")
+        {
+            int range = int.Parse(parts[1].Trim());
+            return GetOrCreateRangeTargetingRule(range);
+
+        } else if (type == "LinearRange")
+        {
+            int range = int.Parse(parts[1].Trim());
+            return GetOrCreateLinearRangeTargetingRule(range);
+        }
+        Debug.LogWarning($"Unknown targeting rule: {raw}");
+        return null;
+
+    }
+
     private static List<CardEffect> ParseEffects(string raw)
     {
         List<CardEffect> effects = new();
@@ -98,6 +124,10 @@ public static class CardCsvImporter
             {
                 float damage = float.Parse(parts[1].Trim());
                 effects.Add(GetOrCreateDamageEffect(damage));
+            } else if (type == "LinearDamage")
+            {
+                float damage = float.Parse(parts[1].Trim());
+                effects.Add(GetOrCreateLinearDamageEffect(damage));
             }
             else
             {
@@ -119,12 +149,7 @@ public static class CardCsvImporter
             string[] parts = token.Split(':');
             string type = parts[0].Trim();
 
-            if (type == "Range")
-            {
-                int range = int.Parse(parts[1].Trim());
-                conditions.Add(GetOrCreateRangeCondition(range));
-            }
-            else if (type == "EnemyTarget")
+            if (type == "EnemyTarget")
             {
                 conditions.Add(GetOrCreateEnemyTargetCondition());
             }
@@ -156,25 +181,6 @@ public static class CardCsvImporter
         return effect;
     }
 
-    private static RangeCondition GetOrCreateRangeCondition(int range)
-    {
-        string path = $"{ConditionOutputDir}/Range_{range}.asset";
-        RangeCondition condition = AssetDatabase.LoadAssetAtPath<RangeCondition>(path);
-
-        if (condition == null)
-        {
-            condition = ScriptableObject.CreateInstance<RangeCondition>();
-            AssetDatabase.CreateAsset(condition, path);
-        }
-
-        SerializedObject so = new SerializedObject(condition);
-        so.FindProperty("MaxRange").intValue = range;
-        so.ApplyModifiedProperties();
-
-        EditorUtility.SetDirty(condition);
-        return condition;
-    }
-
     private static EnemyTargetCondition GetOrCreateEnemyTargetCondition()
     {
         string path = $"{ConditionOutputDir}/EnemyTarget.asset";
@@ -189,6 +195,62 @@ public static class CardCsvImporter
         return condition;
     }
 
+    private static RangeTargetRule GetOrCreateRangeTargetingRule(int range)
+    {
+        string path = $"{TargetingOutputDir}/Range_{range}.asset";
+        RangeTargetRule rule = AssetDatabase.LoadAssetAtPath<RangeTargetRule>(path);
+
+        if (rule == null)
+        {
+            rule = ScriptableObject.CreateInstance<RangeTargetRule>();
+            AssetDatabase.CreateAsset(rule, path);
+        }
+
+        SerializedObject so = new SerializedObject(rule);
+        so.FindProperty("MaxRange").intValue = range;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(rule);
+        return rule;
+    }
+
+    private static LinearRangeTargetRule GetOrCreateLinearRangeTargetingRule(int range)
+    {
+        string path = $"{TargetingOutputDir}/LinearRange_{range}.asset";
+        LinearRangeTargetRule rule = AssetDatabase.LoadAssetAtPath<LinearRangeTargetRule>(path);
+
+        if (rule == null)
+        {
+            rule = ScriptableObject.CreateInstance<LinearRangeTargetRule>();
+            AssetDatabase.CreateAsset(rule, path);
+        }
+
+        SerializedObject so = new SerializedObject(rule);
+        so.FindProperty("MaxRange").intValue = range;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(rule);
+        return rule;
+    }
+
+    private static LinearDamageEffect GetOrCreateLinearDamageEffect(float damage)
+    {
+        string path = $"{EffectOutputDir}/LinearDamage_{damage}.asset";
+        LinearDamageEffect effect = AssetDatabase.LoadAssetAtPath<LinearDamageEffect>(path);
+
+        if (effect == null)
+        {
+            effect = ScriptableObject.CreateInstance<LinearDamageEffect>();
+            AssetDatabase.CreateAsset(effect, path);
+        }
+
+        SerializedObject so = new SerializedObject(effect);
+        so.FindProperty("Damage").floatValue = damage;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(effect);
+        return effect;
+    }
     private static void EnsureFolder(string folder)
     {
         if (AssetDatabase.IsValidFolder(folder)) return;

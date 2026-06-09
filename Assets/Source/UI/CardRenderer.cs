@@ -8,6 +8,8 @@ public class CardRenderer : MonoBehaviour
 
     public Dictionary<CardInstance, CardRenderInfo> CardInstanceViewDictionary { get; private set; }
 
+    private Dictionary<CardInstance, CardRenderView> CardViewsByInstance;
+
     [SerializeField] private Camera CardsCamera;
 
     private List<CardRenderView> CRVs;
@@ -23,6 +25,7 @@ public class CardRenderer : MonoBehaviour
         }
 
         CardInstanceViewDictionary = new();
+        CardViewsByInstance = new();
         CRVs = new();
     }
 
@@ -74,6 +77,7 @@ public class CardRenderer : MonoBehaviour
             CRV.Bind(instances[i]);
             CRVs.Add(CRV);
 
+            CardViewsByInstance.Add(instances[i], CRV);
             CardInstanceViewDictionary.Add(instances[i], viewinfo);
         }
 
@@ -96,5 +100,21 @@ public class CardRenderer : MonoBehaviour
             CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);
         }
         CardsCamera.Render();
+    }
+
+    public void SetDescriptionPreview(CardDescriptionPreview preview)
+    {
+        CardRenderView view = CardViewsByInstance[preview.Card];
+        if (view == null) return;
+
+        view.RefreshPreviewText(preview);
+    }
+
+    public void ClearDescriptionPreview(CardInstance card)
+    {
+        CardRenderView view = CardViewsByInstance[card];
+        if (view == null) return;
+
+        view.ClearPreviewText();
     }
 }

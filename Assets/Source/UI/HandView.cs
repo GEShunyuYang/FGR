@@ -17,6 +17,8 @@ public class HandView : MonoBehaviour
 
     [SerializeField] private Camera WorldCamera;
 
+    private Unit CurrentPreviewTarget;
+
     private float NormalAlpha = 1f;
     private float DraggingAlpha = 0.6f;
 
@@ -108,13 +110,26 @@ public class HandView : MonoBehaviour
     public void UpdateCardDrag(CardView cardView, PointerEventData eventData)
     {
         SetArrow(cardView.transform.position, eventData.position);
+
+        Unit target = GetTargetUnderPointer(eventData.position);
+
+        if (target == CurrentPreviewTarget)
+        {
+            return;
+        }
+
+        CurrentPreviewTarget = target;
+
+        EventsHandler.TriggerEvent(CardEvents.PREVIEW_CARD_TARGET,
+            new CardTargetPreviewRequest(cardView.UsedCardInstance, target));
     }
 
     public void EndCardDrag(CardView cardView, PointerEventData eventData)
     {
         DragArrowRoot.gameObject.SetActive(false);
         HandCanvasGroup.alpha = NormalAlpha;
-
+        CurrentPreviewTarget = null;
+        EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, cardView.UsedCardInstance);
         EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_RANGE);
         //layer cast
         Unit target = GetTargetUnderPointer(eventData.position);
@@ -123,7 +138,6 @@ public class HandView : MonoBehaviour
         {
             EventsHandler.TriggerEvent(CardEvents.PLAY_CARD_REQUEST,
                 new PlayCardRequest(cardView.UsedCardInstance, target));
-            
         }
     }
 
@@ -148,5 +162,29 @@ public class HandView : MonoBehaviour
     void OnDisable()
     {
         
+    }
+}
+
+public class CardTargetPreviewRequest
+{
+    public CardInstance Card;
+    public Unit Target;
+
+    public CardTargetPreviewRequest(CardInstance card, Unit target)
+    {
+        Card = card;
+        Target = target;
+    }
+}
+
+public class CardDescriptionPreview
+{
+    public CardInstance Card;
+    public int Damage;
+
+    public CardDescriptionPreview(CardInstance card, int damage)
+    {
+        Card = card;
+        Damage = damage;
     }
 }

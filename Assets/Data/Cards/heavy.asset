@@ -16,8 +16,8 @@ MonoBehaviour:
   CardNameKey: card.heavy.name
   BaseCost: 2
   DescriptionKey: card.heavy.desc
+  TargetingRule: {fileID: 11400000, guid: da28a6d65ccaecb4ab70aa28d99c775f, type: 2}
   Effects:
   - {fileID: 11400000, guid: 792f098aeae9cf349bf2a901486dd834, type: 2}
   Conditions:
-  - {fileID: 11400000, guid: 5c3d65bab1602424a8d61436fec76d0d, type: 2}
   - {fileID: 11400000, guid: 814ced348a36a3443ad548633bece0bd, type: 2}

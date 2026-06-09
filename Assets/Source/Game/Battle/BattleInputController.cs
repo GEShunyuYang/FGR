@@ -39,7 +39,6 @@ public class BattleInputController : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, 100f))
         {
-            Debug.Log($"{hit.collider.name}");
             Board board = hit.collider.GetComponentInParent<Board>();
 
             if (board == null)
@@ -72,12 +71,18 @@ public class BattleInputController : MonoBehaviour
         CurrentBattleManager.ClearCardPreview();
     }
 
+    void OnCardTargetPreview(CardTargetPreviewRequest request)
+    {
+        CurrentBattleManager.PreviewCardOnTarget(request.Card, request.Target);
+    }
+
     void OnEnable()
     {
         EventsHandler.RegisterEvent(TurnEvents.END_TURN, OnTurnEnd);
         EventsHandler.RegisterEvent<PlayCardRequest>(CardEvents.PLAY_CARD_REQUEST, OnCardPlayRequested);
         EventsHandler.RegisterEvent<CardInstance>(CardEvents.SHOW_CARD_RANGE, OnCardPreviewRequested);
         EventsHandler.RegisterEvent(CardEvents.CLEAR_CARD_RANGE, OnCardPreviewClear);
+        EventsHandler.RegisterEvent<CardTargetPreviewRequest>(CardEvents.PREVIEW_CARD_TARGET, OnCardTargetPreview);
     }
 
      void OnDisable()
@@ -86,6 +91,7 @@ public class BattleInputController : MonoBehaviour
         EventsHandler.UnregisterEvent<PlayCardRequest>(CardEvents.PLAY_CARD_REQUEST, OnCardPlayRequested);
         EventsHandler.UnregisterEvent<CardInstance>(CardEvents.SHOW_CARD_RANGE, OnCardPreviewRequested);
         EventsHandler.UnregisterEvent(CardEvents.CLEAR_CARD_RANGE, OnCardPreviewClear);
+        EventsHandler.UnregisterEvent<CardTargetPreviewRequest>(CardEvents.PREVIEW_CARD_TARGET, OnCardTargetPreview);
     }
 }
 

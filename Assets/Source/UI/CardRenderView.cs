@@ -59,8 +59,20 @@ public class CardRenderView : MonoBehaviour
             return;
         }
 
-        cardName.text = LocalizationManager.Instance.GetText(UsedCardInstance.Data.CardNameKey);
-        description.text = LocalizationManager.Instance.GetText(UsedCardInstance.Data.DescriptionKey);
+        cardName.text = CardTextBuilder.GetName(UsedCardInstance.Data);
+        description.text = CardTextBuilder.GetDescription(UsedCardInstance.Data);
         cardCost.text = UsedCardInstance.CurrentCost.ToString();
+    }
+
+    public void RefreshPreviewText(CardDescriptionPreview preview)
+    {
+        cardName.text = CardTextBuilder.GetName(UsedCardInstance.Data);
+        description.text = CardTextBuilder.GetDescription(UsedCardInstance.Data, preview);
+        cardCost.text = UsedCardInstance.CurrentCost.ToString();
+    }
+
+    public void ClearPreviewText()
+    {
+        RefreshText();
     }
 }
