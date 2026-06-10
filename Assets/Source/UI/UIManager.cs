@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,7 +10,11 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private HandView CurrentHandView;
 
+    [SerializeField] private TurnBannerView CurrentTurnBannerView;
+
     [SerializeField] private Image fillImage;
+
+    [SerializeField] private TextMeshProUGUI textMeshProUGUI;
 
     private CardRenderer CurrentCardRenderer;
     void Awake()
@@ -29,6 +34,21 @@ public class UIManager : MonoBehaviour
         //OnDrawCard(cards);
     }
 
+    public IEnumerator ShowTurnBanner(string text, float duration)
+    {
+        yield return CurrentTurnBannerView.ShowTurnBanner(text, duration);
+    }
+
+    public void SetCardDescriptionPreview(CardDescriptionPreview preview)
+    {
+        CurrentCardRenderer.SetDescriptionPreview(preview);
+    }
+
+    public void ClearCardDescriptionPreview(CardInstance card)
+    {
+        CurrentCardRenderer.ClearDescriptionPreview(card);
+    }
+
     private void OnDrawCard(List<CardInstance> instances)
     {
         //draw card
@@ -39,42 +59,37 @@ public class UIManager : MonoBehaviour
         CurrentHandView.RemoveCard(instances);
     }
 
-    private void OnPreviewCardDescription(CardDescriptionPreview preview)
+    public void SetStaminaProgress(StaminaChangedData data)
     {
-        CurrentCardRenderer.SetDescriptionPreview(preview);
-    }
-
-    private void OnClearCardDescriptionPreview(CardInstance card)
-    {
-        CurrentCardRenderer.ClearDescriptionPreview(card);
-    }
-
-    public void SetStaminaProgress(float percentage)
-    {
-        if (percentage <= 0)
+        if (fillImage == null)
         {
-            fillImage.fillAmount = 0;
+            Debug.LogWarning("Stamina fill image is not assigned.");
             return;
         }
 
-        fillImage.fillAmount = Mathf.Clamp01(percentage);
+        textMeshProUGUI.SetText($"{data.Current}/{data.Max}");
+
+        fillImage.fillAmount = Mathf.Clamp01(data.Ratio);
     }
 
     void OnEnable()
     {
         EventsHandler.RegisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
         EventsHandler.RegisterEvent<CardInstance>(CardEvents.PLAY_CARD, OnPlayCard);
-        EventsHandler.RegisterEvent<CardDescriptionPreview>(CardEvents.PREVIEW_CARD_DESCRIPTION, OnPreviewCardDescription);
-        EventsHandler.RegisterEvent<CardInstance>(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, OnClearCardDescriptionPreview);
-        EventsHandler.RegisterEvent<float>(UIEvents.STAMINA_CHANGE, SetStaminaProgress);
+        EventsHandler.RegisterEvent<StaminaChangedData>(UIEvents.STAMINA_CHANGE, SetStaminaProgress);
     }
 
     void OnDisable()
     {
         EventsHandler.UnregisterEvent<List<CardInstance>>(UIEvents.DRAW_CARD, OnDrawCard);
         EventsHandler.UnregisterEvent<CardInstance>(CardEvents.PLAY_CARD, OnPlayCard);
-        EventsHandler.UnregisterEvent<CardDescriptionPreview>(CardEvents.PREVIEW_CARD_DESCRIPTION, OnPreviewCardDescription);
-        EventsHandler.UnregisterEvent<CardInstance>(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, OnClearCardDescriptionPreview);
-        EventsHandler.UnregisterEvent<float>(UIEvents.STAMINA_CHANGE, SetStaminaProgress);
+        EventsHandler.UnregisterEvent<StaminaChangedData>(UIEvents.STAMINA_CHANGE, SetStaminaProgress);
     }
+}
+
+public class StaminaChangedData
+{
+    public int Current;
+    public int Max;
+    public float Ratio => Max <= 0 ? 0f : Current / (float)Max;
 }

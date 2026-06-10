@@ -13,7 +13,7 @@ public class BattleInputController : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Backspace))
+        if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetMouseButtonDown(1))
         {
             CurrentBattleManager.TryUndoMove();
             return;

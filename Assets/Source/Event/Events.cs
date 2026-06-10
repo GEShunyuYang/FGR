@@ -5,12 +5,10 @@ using UnityEngine;
 public static class CardEvents
 {
     public const string PREVIEW_CARD_TARGET = "Preview_Card_Target";
-    public const string PREVIEW_CARD_DESCRIPTION = "Preview_Card_Description";
     public const string PLAY_CARD = "Play_Card";
     public const string PLAY_CARD_REQUEST = "Play_Card_Request";
     public const string SHOW_CARD_RANGE = "Show_Card_Range";
     public const string CLEAR_CARD_RANGE = "Clear_Card_Range";
-    public const string CLEAR_CARD_DESCRIPTION_PREVIEW = "Clear_Card_Description_Preview";
 }
 
 public static class UIEvents

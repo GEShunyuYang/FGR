@@ -10,6 +10,9 @@ public class BattleManager : MonoBehaviour
     // cards
     private CardManager CurrentCardManager;
 
+    // UI
+    private UIManager CurrentUIManager;
+
     // player
     [SerializeField] private Unit PlayerPrefab;
     private Unit CurrentPlayer;
@@ -47,8 +50,9 @@ public class BattleManager : MonoBehaviour
         DMGResolver = new();
     }
 
-    public void Init(RuntimeBattleState RTBattleState, CardManager cardManager)
+    public void Init(RuntimeBattleState RTBattleState, CardManager cardManager, UIManager uiManager)
     {
+        CurrentUIManager = uiManager;
         CurrentCardManager = cardManager;
         CurrentBattleState = RTBattleState;
 
@@ -80,12 +84,18 @@ public class BattleManager : MonoBehaviour
         ChangeState(BattleState.PlayerTurnStart);
     }
 
-    private void StartPlayerTurn()
+    private IEnumerator StartPlayerTurnCoroutine()
     {
+        yield return CurrentUIManager.ShowTurnBanner("Your Turn", .7f);
+
         HasMovedThisTurn = false;
         CanUndoMove = false;
         CurrentBattleState.CurrentStamina = CurrentBattleState.MaxStamina;
-        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, CurrentBattleState.CurrentStamina / (float)CurrentBattleState.MaxStamina);
+        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, 
+            new StaminaChangedData{
+            Current = CurrentBattleState.CurrentStamina,
+            Max = CurrentBattleState.MaxStamina
+        });
         // Settle Dots dmg
 
         CurrentBattleState.CurrentTurn++;
@@ -136,8 +146,10 @@ public class BattleManager : MonoBehaviour
         ChangeState(BattleState.EnemyTurnStart);
     }
 
-    private void StartEnemyTurn()
+    private IEnumerator StartEnemyTurnCoroutine()
     {
+        yield return CurrentUIManager.ShowTurnBanner("Enemy's Turn", .7f);
+
         Queue.Enqueue(new MoveAction(Board, CurrentEnemies[0], new Vector2Int(Random.Range(0, 5), Random.Range(0, 5))));
         if (Queue.HasActions)
         {
@@ -187,7 +199,11 @@ public class BattleManager : MonoBehaviour
         }
 
         CurrentBattleState.CurrentStamina -= card.CurrentCost;
-        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, CurrentBattleState.CurrentStamina / (float) CurrentBattleState.MaxStamina);
+        EventsHandler.TriggerEvent(UIEvents.STAMINA_CHANGE, 
+            new StaminaChangedData{
+            Current = CurrentBattleState.CurrentStamina,
+            Max = CurrentBattleState.MaxStamina
+        });
 
         CanUndoMove = false;
 
@@ -266,7 +282,7 @@ public class BattleManager : MonoBehaviour
 
             case BattleState.PlayerTurnStart:
                 DebugInfo("to PlayerTurnStart");
-                StartPlayerTurn();
+                StartCoroutine(StartPlayerTurnCoroutine());
                 break;
 
             case BattleState.WaitingForPlayerInput:
@@ -286,7 +302,7 @@ public class BattleManager : MonoBehaviour
 
             case BattleState.EnemyTurnStart:
                 DebugInfo("to EnemyTurnStart");
-                StartEnemyTurn();
+                StartCoroutine(StartEnemyTurnCoroutine());
                 break;
 
             case BattleState.EnemyTakingActions:
@@ -458,7 +474,7 @@ public class BattleManager : MonoBehaviour
 
         if (card == null || target == null)
         {
-            EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, card);
+            CurrentUIManager.ClearCardDescriptionPreview(card);
             return;
         }
 
@@ -467,12 +483,12 @@ public class BattleManager : MonoBehaviour
 
         if (!CanPlayCard(context))
         {
-            EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, card);
+            CurrentUIManager.ClearCardDescriptionPreview(card);
             return;
         }
 
         CardDescriptionPreview preview = BuildCardDescriptionPreview(context);
-        EventsHandler.TriggerEvent(CardEvents.PREVIEW_CARD_DESCRIPTION, preview);
+        CurrentUIManager.SetCardDescriptionPreview(preview);
     }
 
     private CardDescriptionPreview BuildCardDescriptionPreview(CardPlayContext context)

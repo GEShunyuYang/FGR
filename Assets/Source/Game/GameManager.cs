@@ -71,7 +71,7 @@ public class GameManager : MonoBehaviour
         CurrentCardManager.Init(RTBS);
         CurrentCardRenderer.Init(CurrentCardManager.instances);
         CurrentUIManager.Init(CurrentCardRenderer);
-        CurrentBattleManager.Init(RTBS, CurrentCardManager);
+        CurrentBattleManager.Init(RTBS, CurrentCardManager, CurrentUIManager);
         CurrentBattleInputController.Init(CurrentBattleManager);
 
 

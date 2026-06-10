@@ -7,6 +7,11 @@ public class TurnEndView : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 {
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (eventData.button != PointerEventData.InputButton.Left)
+        {
+            return;
+        }
+
         EventsHandler.TriggerEvent(TurnEvents.END_TURN);
     }
 

@@ -129,7 +129,8 @@ public class HandView : MonoBehaviour
         DragArrowRoot.gameObject.SetActive(false);
         HandCanvasGroup.alpha = NormalAlpha;
         CurrentPreviewTarget = null;
-        EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_DESCRIPTION_PREVIEW, cardView.UsedCardInstance);
+        EventsHandler.TriggerEvent(CardEvents.PREVIEW_CARD_TARGET,
+            new CardTargetPreviewRequest(cardView.UsedCardInstance, null));
         EventsHandler.TriggerEvent(CardEvents.CLEAR_CARD_RANGE);
         //layer cast
         Unit target = GetTargetUnderPointer(eventData.position);
