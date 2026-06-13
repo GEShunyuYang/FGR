@@ -15,6 +15,10 @@ public class DamageEffect : CardEffect
 
         List<Vector2Int> impactCells = context.Card.Data.TargetingRule.GetImpactCells(context);
 
+        queue.Enqueue(new FaceTargetAction(context.Caster, context.Target.GridPos));
+
+        queue.Enqueue(new PlayAnimationAction(context.Caster, UnitAnimationType.Attack));
+
         foreach (Vector2Int cell in impactCells)
         {
             Unit unit = context.Board.GetOccupant(cell);
@@ -23,7 +27,9 @@ public class DamageEffect : CardEffect
 
             float finalDamage = context.DMGResolver.Resolve(context, Damage);
 
-            queue.Enqueue(new DamageAction(unit, Damage));
+            queue.Enqueue(new DamageAction(unit, finalDamage));
         }
+
+        queue.Enqueue(new WaitAnimationEndAction(context.Caster));
     }
 }

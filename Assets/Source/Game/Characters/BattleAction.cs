@@ -62,3 +62,67 @@ public class DamageAction : BattleAction
         yield return target.TakeDamage(damage);
     }
 }
+
+public class PlayAnimationAction : BattleAction
+{
+    private Unit unit;
+    private UnitAnimationType animationType;
+
+    public PlayAnimationAction(Unit unit, UnitAnimationType animationType)
+    {
+        this.unit = unit;
+        this.animationType = animationType;
+    }
+
+    public override IEnumerator Execute()
+    {
+        switch (animationType)
+        {
+            case UnitAnimationType.Attack:
+                yield return unit.PlayAttackAnimation();
+                break;
+        }
+    }
+}
+
+public class WaitAnimationEndAction : BattleAction
+{
+    private Unit unit;
+
+    public WaitAnimationEndAction(Unit unit)
+    {
+        this.unit = unit;
+    }
+
+    public override IEnumerator Execute()
+    {
+        yield return unit.WaitAttackEnd();
+    }
+}
+
+public class FaceTargetAction : BattleAction
+{
+    private Unit unit;
+    private Vector2Int target;
+
+    public FaceTargetAction(Unit unit, Vector2Int targetCell)
+    {
+        this.unit = unit;
+        this.target = targetCell;
+    }
+
+    public override IEnumerator Execute()
+    {
+        if (unit == null)
+        {
+            yield break;
+        }
+
+        yield return unit.FaceCell(target);
+    }
+}
+
+public enum UnitAnimationType
+{
+    Attack
+}

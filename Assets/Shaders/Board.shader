@@ -2,8 +2,8 @@ Shader "FGR/Board"
 {
     Properties
     {
-        _GridColor ("Grid Color", Color) = (0.8, 0.9, 0.8, 1)
-        _HighlightColor ("Highlight Color", Color) = (1, 0.85, 0.2, 0.7)
+        _GridColor ("Grid Color", Color) = (0.1, 0.2, 0.2, 0.1)
+        _HighlightColor ("Highlight Color", Color) = (1, 0.85, 0.2, 0.5)
 
         _GridX ("Grid X", Float) = 5
         _GridY ("Grid Y", Float) = 5
@@ -29,7 +29,7 @@ Shader "FGR/Board"
 
             Blend SrcAlpha OneMinusSrcAlpha
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
 
             HLSLPROGRAM

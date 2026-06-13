@@ -117,7 +117,7 @@ Material:
     - _GlossyReflections: 0
     - _GridX: 5
     - _GridY: 5
-    - _HighlightLineWidth: 0.05
+    - _HighlightLineWidth: 0.03
     - _LineWidth: 0.015
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -137,7 +137,7 @@ Material:
     - _BoardOriginSize: {r: 0, g: 0, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _GridColor: {r: 0.8, g: 0.9, b: 0.8, a: 1}
-    - _HighlightColor: {r: 1, g: 0.85, b: 0.19999996, a: 0.7}
+    - _GridColor: {r: 0.20784307, g: 0.6467281, b: 0.92941177, a: 0.39215687}
+    - _HighlightColor: {r: 0.84276724, g: 0.82262236, b: 0.1934653, a: 0.7}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

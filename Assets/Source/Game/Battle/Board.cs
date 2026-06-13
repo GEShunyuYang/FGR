@@ -106,7 +106,7 @@ public class Board : MonoBehaviour
     public void SetHighlightCells(List<Vector2Int> cells, BoardHighlightMode mode)
     {
         Color32 off = new Color32(0, 0, 0, 255); 
-        Color highlightColor = mode == BoardHighlightMode.Move ? new Color(0.8f, 0.8f, 0.2f, 1f) : new Color(0.9f, 0.2f, 0.2f, 1f);
+        Color highlightColor = mode == BoardHighlightMode.Move ? new Color(0.9f, 0.8f, 0.2f, .7f) : new Color(0.9f, 0.2f, 0.2f, .7f);
         BoardMaterial.SetColor("_HighlightColor", highlightColor);
 
         for (int i = 0; i < HighlightPixels.Length; i++)

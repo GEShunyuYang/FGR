@@ -62,6 +62,8 @@ public class BattleManager : MonoBehaviour
         // player
         CurrentPlayer = Instantiate(PlayerPrefab);
         CurrentPlayer.Init(Board, CurrentBattleState.Player);
+        HPBarView hpBar = CurrentUIManager.CreateHPBar(CurrentPlayer);
+        CurrentPlayer.BindHealthBar(hpBar);
 
         // enemies
         foreach (UnitRuntime enemy in CurrentBattleState.Enemies)
@@ -73,6 +75,8 @@ public class BattleManager : MonoBehaviour
                     if (!EnemyPrefabs[0]) break;
                     EnemyUnit = Instantiate(EnemyPrefabs[0]);
                     EnemyUnit.Init(Board, enemy);
+                    HPBarView hpBarE = CurrentUIManager.CreateHPBar(EnemyUnit);
+                    EnemyUnit.BindHealthBar(hpBarE);
                     CurrentEnemies.Add(EnemyUnit);
                     break;
             }
@@ -537,6 +541,7 @@ public class BattleManager : MonoBehaviour
         HasMovedThisTurn = true;
         CanUndoMove = true;
 
+        Queue.Enqueue(new FaceTargetAction(CurrentPlayer, targetCell));
         Queue.Enqueue(new MoveAction(Board, CurrentPlayer, targetCell));
         ChangeState(BattleState.PlayerTakingActions);
 

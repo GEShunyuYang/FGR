@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
@@ -12,7 +11,11 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private TurnBannerView CurrentTurnBannerView;
 
-    [SerializeField] private Image fillImage;
+    [SerializeField] private HPBarView HPBarPrefab;
+
+    [SerializeField] private RectTransform BarRoot;
+
+    [SerializeField] private Image StaminaImage;
 
     [SerializeField] private TextMeshProUGUI textMeshProUGUI;
 
@@ -31,7 +34,19 @@ public class UIManager : MonoBehaviour
 
     void Update()
     {
-        //OnDrawCard(cards);
+
+    }
+
+    public HPBarView CreateHPBar(Unit unit)
+    {
+        HPBarView view = Instantiate(HPBarPrefab, BarRoot, false);
+        view.Bind(unit);
+        return view;
+    }
+
+    public void UpdateUnitHealth()
+    {
+
     }
 
     public IEnumerator ShowTurnBanner(string text, float duration)
@@ -61,7 +76,7 @@ public class UIManager : MonoBehaviour
 
     public void SetStaminaProgress(StaminaChangedData data)
     {
-        if (fillImage == null)
+        if (StaminaImage == null)
         {
             Debug.LogWarning("Stamina fill image is not assigned.");
             return;
@@ -69,7 +84,7 @@ public class UIManager : MonoBehaviour
 
         textMeshProUGUI.SetText($"{data.Current}/{data.Max}");
 
-        fillImage.fillAmount = Mathf.Clamp01(data.Ratio);
+        StaminaImage.fillAmount = Mathf.Clamp01(data.Ratio);
     }
 
     void OnEnable()
