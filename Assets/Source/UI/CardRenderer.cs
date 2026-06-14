@@ -15,7 +15,7 @@ public class CardRenderer : MonoBehaviour
     private List<CardRenderView> CRVs;
     public RenderTexture CardsRenderTexture { get; private set; }
 
-    private Vector3 CardsPosition = new Vector3(-100, 0, 0);
+    private Vector3 CardsPosition = new Vector3(-1000, 0, 0);
     void Awake()
     {
         if (!CardsCamera || !RTPrefab)
@@ -50,7 +50,7 @@ public class CardRenderer : MonoBehaviour
         const int CardPixelWidth = 343;
         const int CardPixelHeight = 512;
 
-        CardsRenderTexture = new RenderTexture(CardPixelWidth * columns, CardPixelHeight * rows, 16);
+        CardsRenderTexture = new RenderTexture(CardPixelWidth * columns, CardPixelHeight * rows, 16, RenderTextureFormat.ARGB32);
         CardsRenderTexture.Create();
         CardsCamera.targetTexture = CardsRenderTexture;
 
@@ -97,7 +97,10 @@ public class CardRenderer : MonoBehaviour
     private void UpdateTexture()
     {
         for (int i = 0; i < CRVs.Count; i++) {
-            CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);
+            if(CRVs[i].CardTransform != null)
+            {
+                CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);
+            }
         }
         CardsCamera.Render();
     }

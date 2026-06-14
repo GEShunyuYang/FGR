@@ -586,6 +586,21 @@ public class BattleManager : MonoBehaviour
         ShowMovePreview();
         return true;
     }
+
+    private bool paused = false;
+    public void PauseGame()
+    {
+        Debug.Log($"{paused}");
+        paused = !paused;
+
+        if (paused)
+        {
+            CurrentUIManager.ShowPause();
+        } else
+        {
+            CurrentUIManager.ClearPause();
+        }
+    }
 }
 
 public enum BattleState

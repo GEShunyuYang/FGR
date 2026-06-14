@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 using UnityEngine;
 
 public class IndirectGrassRenderer : MonoBehaviour
@@ -16,6 +17,9 @@ public class IndirectGrassRenderer : MonoBehaviour
     [SerializeField] private float PlayerBendRadius = 1.5f;
     [SerializeField] private float BendStrength = 1.2f;
 
+    [SerializeField] private Texture2D GroundTintTexture;
+    [SerializeField, Range(0f, 1f)] private float TintStrength = 0.5f;
+
     private Mesh mesh;
     private Material material;
 
@@ -29,6 +33,9 @@ public class IndirectGrassRenderer : MonoBehaviour
     private static readonly int MatricesId = Shader.PropertyToID("_Matrices");
     private static readonly int PlayerPosRadiusId = Shader.PropertyToID("_PlayerPosRadius");
     private static readonly int BendStrengthId = Shader.PropertyToID("_BendStrength");
+    private static readonly int GroundTintTexId = Shader.PropertyToID("_GroundTintTex");
+    private static readonly int TintStrengthId = Shader.PropertyToID("_TintStrength");
+    private static readonly int TintMapOriginSizeId = Shader.PropertyToID("_TintMapOriginSize");
 
     private void Start()
     {
@@ -72,6 +79,23 @@ public class IndirectGrassRenderer : MonoBehaviour
             transform.position,
             new Vector3(AreaSize.x, 30f, AreaSize.y)
         );
+
+        // grass texture
+        if (GroundTintTexture != null)
+        {
+            material.SetTexture(GroundTintTexId, GroundTintTexture);
+        }
+
+        material.SetFloat(TintStrengthId, TintStrength);
+
+        Vector4 originSize = new Vector4(
+            transform.position.x - AreaSize.x * 0.5f,
+            transform.position.z - AreaSize.y * 0.5f,
+            AreaSize.x,
+            AreaSize.y
+        );
+
+        material.SetVector(TintMapOriginSizeId, originSize);
     }
 
     private void Update()
@@ -85,7 +109,6 @@ public class IndirectGrassRenderer : MonoBehaviour
             {
                 Player = player.transform;
             }
-            Debug.Log("Found");
         }
 
         if (Player != null)
@@ -100,7 +123,11 @@ public class IndirectGrassRenderer : MonoBehaviour
             0,
             material,
             drawBounds,
-            argsBuffer
+            argsBuffer,
+            0,
+            null,
+            ShadowCastingMode.On,
+            true
         );
     }
 

@@ -16,7 +16,6 @@ public class BattleInputController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetMouseButtonDown(1))
         {
             CurrentBattleManager.TryUndoMove();
-            return;
         }
 
         if (Input.GetMouseButtonDown(0))
@@ -24,10 +23,17 @@ public class BattleInputController : MonoBehaviour
             TryClickBoardCell();
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift)) {
-            LocalizationManager.Instance.SetLanguage(Language.En);
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            CurrentBattleManager.PauseGame();
         }
-        if (Input.GetKeyDown(KeyCode.RightShift))
+    }
+
+    public void OnLanguageChange()
+    {
+        if (LocalizationManager.Instance.CurrentLanguage == Language.Zh)
+        {
+            LocalizationManager.Instance.SetLanguage(Language.En);
+        } else
         {
             LocalizationManager.Instance.SetLanguage(Language.Zh);
         }
@@ -37,8 +43,9 @@ public class BattleInputController : MonoBehaviour
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, 1 << 8))
         {
+            //Debug.Log($"Clicked: {hit.collider.name}, layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
             Board board = hit.collider.GetComponentInParent<Board>();
 
             if (board == null)

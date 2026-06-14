@@ -6,7 +6,7 @@ public class PCGTreePlacement : MonoBehaviour
 {
     public GameObject[] prefabs;
 
-    public int count = 50;
+    [SerializeField] public int count = 50;
 
     public LayerMask groundMask;
 
@@ -17,6 +17,15 @@ public class PCGTreePlacement : MonoBehaviour
     private List<Vector3> placedPositions = new List<Vector3>();
 
     public float minDistance = 3f;
+
+    private static readonly int LeafTintId = Shader.PropertyToID("_Color");
+    private static readonly int ColorDepthId = Shader.PropertyToID("_ColorDepth");
+    private static readonly int ShadowStrengthId = Shader.PropertyToID("_ShadowStrength");
+
+    [SerializeField] private Color LeafTintA = new Color(0.65f, 0.9f, 0.45f, 1f);
+    [SerializeField] private Color LeafTintB = new Color(0.35f, 0.65f, 0.35f, 1f);
+    [SerializeField] private Vector2 LeafDepthRange = new Vector2(0.75f, 1.15f);
+    [SerializeField] private Vector2 LeafShadowRange = new Vector2(0.6f, 0.9f);
 
     [ContextMenu("Generate Trees")]
     public void Generate()
@@ -76,7 +85,12 @@ public class PCGTreePlacement : MonoBehaviour
 
                 GameObject tree = Instantiate(prefab, hit.point, rotation);
 
+                float scale = Random.Range(scaleRange.x, scaleRange.y);
+                tree.transform.localScale = Vector3.one * scale;
+
                 tree.transform.SetParent(transform);
+
+                ApplyRandomLeafColor(tree);
             }
         }
     }
@@ -123,5 +137,38 @@ public class PCGTreePlacement : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ApplyRandomLeafColor(GameObject tree)
+    {
+        Renderer[] renderers = tree.GetComponentsInChildren<Renderer>();
+
+        Color tint = Color.Lerp(LeafTintA, LeafTintB, Random.value);
+        float depth = Random.Range(LeafDepthRange.x, LeafDepthRange.y);
+        float shadow = Random.Range(LeafShadowRange.x, LeafShadowRange.y);
+
+        foreach (Renderer renderer in renderers)
+        {
+            Material[] materials = renderer.sharedMaterials;
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                Material mat = materials[i];
+
+                if (mat == null || !mat.HasProperty(ColorDepthId))
+                {
+                    continue;
+                }
+
+                MaterialPropertyBlock block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block, i);
+
+                block.SetColor(LeafTintId, tint);
+                block.SetFloat(ColorDepthId, depth);
+                block.SetFloat(ShadowStrengthId, shadow);
+
+                renderer.SetPropertyBlock(block, i);
+            }
+        }
     }
 }

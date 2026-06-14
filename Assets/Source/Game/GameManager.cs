@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
 
                     CurrentHP = 90,
 
-                    GridPos = new Vector2Int(5, 3)
+                    GridPos = new Vector2Int(5, 2)
                 }},
             MaxStamina = 4,
             CurrentStamina = 4,

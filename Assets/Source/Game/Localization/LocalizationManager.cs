@@ -7,7 +7,7 @@ public class LocalizationManager : MonoBehaviour
 
     [SerializeField] private TextAsset LocalizationCsv;
 
-    public Language CurrentLanguage { get; private set; } = Language.Zh;
+    public Language CurrentLanguage { get; private set; } = Language.En;
 
     private readonly Dictionary<string, Dictionary<Language, string>> texts = new();
 

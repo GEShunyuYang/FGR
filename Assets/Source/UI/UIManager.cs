@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private RectTransform BarRoot;
 
+    [SerializeField] private CanvasGroup PauseView;
+
     [SerializeField] private Image StaminaImage;
 
     [SerializeField] private TextMeshProUGUI textMeshProUGUI;
@@ -85,6 +87,18 @@ public class UIManager : MonoBehaviour
         textMeshProUGUI.SetText($"{data.Current}/{data.Max}");
 
         StaminaImage.fillAmount = Mathf.Clamp01(data.Ratio);
+    }
+
+    public void ShowPause()
+    {
+        PauseView.alpha = 1f;
+        PauseView.blocksRaycasts = true;
+    }
+
+    public void ClearPause()
+    {
+        PauseView.alpha = 0.0f;
+        PauseView.blocksRaycasts = false;
     }
 
     void OnEnable()
