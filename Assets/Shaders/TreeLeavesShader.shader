@@ -18,6 +18,9 @@ Shader "FGR/TreeLeavesShader"
         _EdgeWidth ("Edge Width", Range(1, 4)) = 1
 
         _Cutoff ("Alpha Cutoff", Range(0, 1)) = 0.5
+
+        _CameraFadeStart ("Camera Fade Start", Float) = 5
+        _CameraFadeEnd ("Camera Fade End", Float) = 2
     }
 
     SubShader
@@ -115,6 +118,7 @@ Shader "FGR/TreeLeavesShader"
                 float4 positionCS : SV_POSITION;
                 float3 normalWS : TEXCOORD0;
                 float2 uv : TEXCOORD1;
+                float3 positionWS : TEXCOORD2;
             };
 
             TEXTURE2D(_MainTex);
@@ -134,6 +138,8 @@ Shader "FGR/TreeLeavesShader"
                 float _EdgeStrength;
                 float _EdgeWidth;
                 float4 _MainTex_TexelSize;
+                float _CameraFadeEnd;
+                float _CameraFadeStart;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -148,35 +154,53 @@ Shader "FGR/TreeLeavesShader"
                 output.positionCS = pos.positionCS;
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-
+                output.positionWS = pos.positionWS;
                 return output;
             }
 
             half4 frag(Varyings input) : SV_Target
             {
+                // alpha Cutoff
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 clip(tex.a - _Cutoff);
 
-                half3 baseColor = tex.rgb * _Color.rgb * _ColorDepth;
+                // view depth cutoff
+                float cameraDistance = distance(input.positionWS, _WorldSpaceCameraPos);
+                float fade = smoothstep(_CameraFadeEnd, _CameraFadeStart, cameraDistance);
+
+                float ghost = saturate(fade);
+
+                // remain partial pixels
+                float2 screenUV = input.positionCS.xy / input.positionCS.w;
+                float noise = frac(sin(dot(screenUV * 173.13, float2(12.9898, 78.233))) * 43758.5453);
+
+                // clip more if close
+                clip(ghost - noise * 0.8);
+
+                half luminance = dot(tex.rgb, half3(0.299, 0.587, 0.114));
+                half3 baseColor = _Color.rgb * luminance * _ColorDepth;
 
                 Light mainLight = GetMainLight();
                 half3 normalWS = normalize(input.normalWS);
-                // fake normal
+
+                // simple fake normal
                 normalWS = normalize(lerp(normalWS, half3(0, 1, 0), 0.45));
-                half ndl = saturate(dot(normalWS, mainLight.direction));
-                half shade = step(_ShadeThreshold, ndl);
 
                 // edge
                 float edge = 1.0 - smoothstep(_Cutoff, _Cutoff + 0.15 * _EdgeWidth, tex.a);
                 edge = saturate(edge);
 
                 // light
-                half3 lightColor = baseColor * mainLight.color.rgb;
-                half3 darkColor = baseColor * _ShadowColor.rgb;
+                half ndl = saturate(dot(normalWS, mainLight.direction));
+                half shade = step(_ShadeThreshold, ndl);
+
+                half3 lightColor = baseColor * (mainLight.color.rgb * 1.75);
+                half3 darkColor = baseColor * 0.75;
 
                 half3 toonColor = lerp(darkColor, lightColor, shade);
                 half3 finalColor = lerp(baseColor, toonColor, _ShadowStrength);
 
+                finalColor *= 1.15;
                 finalColor = lerp(finalColor, _EdgeColor.rgb, edge * _EdgeStrength);
 
                 return half4(finalColor, tex.a * _Color.a);

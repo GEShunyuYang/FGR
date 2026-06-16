@@ -15,6 +15,8 @@ public class PCGStonePlacement : MonoBehaviour
 
     public float minDistance = 10f;
 
+    [SerializeField] private float grassAvoidPadding = 0.5f;
+
     [ContextMenu("Generate Stones")]
     public void Generate()
     {
@@ -73,6 +75,33 @@ public class PCGStonePlacement : MonoBehaviour
                 tree.transform.SetParent(transform);
             }
         }
+    }
+
+    public List<Bounds> GetGrassBlockBounds()
+    {
+        List<Bounds> result = new();
+
+        foreach (Transform child in transform)
+        {
+            Renderer[] renderers = child.GetComponentsInChildren<Renderer>();
+
+            if (renderers.Length == 0)
+            {
+                continue;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            bounds.Expand(new Vector3(grassAvoidPadding, 0f, grassAvoidPadding));
+            result.Add(bounds);
+        }
+
+        return result;
     }
 
     void OnDrawGizmos()

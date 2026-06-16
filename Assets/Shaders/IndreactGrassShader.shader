@@ -29,7 +29,8 @@ Shader "FGR/IndreactGrassShader"
         }
 
         LOD 100
-
+        // too consuming, effect not good
+        /*
         Pass
         {
             Name "ShadowCaster"
@@ -146,7 +147,7 @@ Shader "FGR/IndreactGrassShader"
             }
 
             ENDHLSL
-        }
+        }*/
 
         Pass
         {
@@ -212,6 +213,11 @@ Shader "FGR/IndreactGrassShader"
             float4 _MainTex_ST;
             float _Cutoff;
 
+            float Hash12(float2 p)
+            {
+                return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
+            }
+
             v2f vert (appdata v)
             {
                 float4x4 m = _Matrices[v.instanceID];
@@ -221,29 +227,43 @@ Shader "FGR/IndreactGrassShader"
                 float3 worldPos = mul(m, float4(localPos, 1)).xyz;
                 float3 originalWorldPos = worldPos;
 
+                
                  // wind
+                float3 instanceOrigin = mul(m, float4(0, 0, 0, 1)).xyz;
+                float instanceRand = Hash12(instanceOrigin.xz);
+
                 float2 baseDir = normalize(_WindDirection.xz + 0.0001);
                 float2 sideDir = float2(-baseDir.y, baseDir.x);
 
-                float2 windUV = originalWorldPos.xz * _WindNoiseScale;
-                windUV += baseDir * _Time.y * _WindNoiseSpeed;
-
                 float heightWeight = saturate(localPos.y * 2.0);
+                heightWeight *= heightWeight;
 
-                // noise gradient sampling
-                float eps = 0.05;
+                // bigger part
+                float2 macroUV = originalWorldPos.xz * (_WindNoiseScale * 5.0);
+                macroUV += baseDir * _Time.y * _WindNoiseSpeed;
 
-                float nC = tex2Dlod(_WindNoiseTex, float4(windUV, 0, 0)).r;
-                float nX = tex2Dlod(_WindNoiseTex, float4(windUV + float2(eps, 0), 0, 0)).r;
-                float nY = tex2Dlod(_WindNoiseTex, float4(windUV + float2(0, eps), 0, 0)).r;
+                float macro = tex2Dlod(_WindNoiseTex, float4(macroUV, 0, 0)).r;
+                float macroAmount = macro * 2.0 - 1.0;
 
-                float2 grad = float2(nX - nC, nY - nC);
-                float2 noiseDir = normalize(baseDir + grad * 4.0);
+                // smaller part
+                float2 microUV = originalWorldPos.xz * (_WindNoiseScale * 0.5);
+                microUV += float2(0.37, 0.81) * _Time.y * (_WindNoiseSpeed * 1.2);
+                microUV += instanceRand * 4.0;
 
-                float windAmount = (nC * 2.0 - 1.0);
+                float micro = tex2Dlod(_WindNoiseTex, float4(microUV, 0, 0)).r;
+                float microAmount = micro * 2.0 - 1.0;
+
+                float phase = instanceRand * 6.28318;
+                float wave = sin(_Time.y * _WindSpeed + dot(originalWorldPos.xz, baseDir) * _WindScale + phase);
+
+                // weighted combine
+                
+                float windAmount = wave * 0.75 + macroAmount * 0.3 + microAmount * 0.08;
+
+                // add noised direction
+                float2 noiseDir = normalize(baseDir + sideDir * microAmount * _WindTurbulence);
 
                 float2 windOffset = noiseDir * windAmount * _WindStrength * heightWeight;
-
                 worldPos.xz += windOffset;
 
                 float windBendAmount = saturate(abs(windAmount) * heightWeight);
@@ -296,10 +316,10 @@ Shader "FGR/IndreactGrassShader"
                 float shadow = mainLight.shadowAttenuation;
                 float ndl = saturate(dot(normalize(i.normalWS), normalize(mainLight.direction)));
 
-                float light = lerp(0.45, 1.0, ndl);
-                light *= lerp(0.45, 1.0, shadow);
+                float directLight = lerp(0.75, 1.05, ndl);
+                float shadowLight = lerp(0.75, 1.1, shadow);
 
-                col.rgb *= light;
+                col.rgb *= directLight * shadowLight;
 
                 float3 normalWS = normalize(i.normalWS);
                 float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -308,10 +328,10 @@ Shader "FGR/IndreactGrassShader"
                 float spec = pow(saturate(dot(normalWS, halfDir)), _BendSpecPower);
 
                 col.rgb += spec * i.bendAmount * _BendSpecColor.rgb * _BendSpecStrength;
-                /*
+                
                 float heightWeight = saturate(i.vertex.y * 2.0);
                 float rootDark = 1.0 - heightWeight;
-                col.rgb *= lerp(1.0, 0.65, rootDark * 0.4);*/
+                col.rgb *= lerp(1.0, 0.65, rootDark * 0.4);
                 return col;
             }
             ENDHLSL

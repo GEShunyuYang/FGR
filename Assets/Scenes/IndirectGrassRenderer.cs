@@ -20,6 +20,8 @@ public class IndirectGrassRenderer : MonoBehaviour
     [SerializeField] private Texture2D GroundTintTexture;
     [SerializeField, Range(0f, 1f)] private float TintStrength = 0.5f;
 
+    [SerializeField] private PCGStonePlacement StonePlacement;
+
     private Mesh mesh;
     private Material material;
 
@@ -45,27 +47,48 @@ public class IndirectGrassRenderer : MonoBehaviour
         mesh = meshFilter.sharedMesh;
         material = new Material(meshRenderer.sharedMaterial);
 
-        Matrix4x4[] matrices = new Matrix4x4[InstanceCount];
+        List<Matrix4x4> matrices = new();
+        List<Bounds> stoneBounds = StonePlacement != null
+            ? StonePlacement.GetGrassBlockBounds()
+            : new List<Bounds>();
 
-        for (int i = 0; i < InstanceCount; i++)
+        int attempts = 0;
+        int maxAttempts = InstanceCount * 5;
+
+        while (matrices.Count < InstanceCount && attempts < maxAttempts)
         {
+            attempts++;
+
             float x = Random.Range(-AreaSize.x * 0.5f, AreaSize.x * 0.5f);
             float z = Random.Range(-AreaSize.y * 0.5f, AreaSize.y * 0.5f);
 
             Vector3 position = transform.position + new Vector3(x, 0f, z);
-            Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-            float scaleValue = Random.Range(MinScale, MaxScale);
-            Vector3 scale = Vector3.one * scaleValue;
 
-            matrices[i] = Matrix4x4.TRS(position, rotation, scale);
+            if (IsInsideAnyStoneBounds(position, stoneBounds))
+            {
+                continue;
+            }
+
+            Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+            float widthScale = Random.Range(MinScale, MaxScale);
+            float heightScale = Random.Range(MinScale, MaxScale);
+
+            if (Random.value < 0.05f)
+            {
+                heightScale *= Random.Range(1.2f, 2.2f);
+            }
+
+            Vector3 scale = new Vector3(widthScale, heightScale, widthScale);
+
+            matrices.Add(Matrix4x4.TRS(position, rotation, scale));
         }
 
-        matrixBuffer = new ComputeBuffer(InstanceCount, sizeof(float) * 16);
+        matrixBuffer = new ComputeBuffer(matrices.Count, sizeof(float) * 16);
         matrixBuffer.SetData(matrices);
 
         uint[] args = new uint[5];
         args[0] = mesh.GetIndexCount(0);
-        args[1] = (uint)InstanceCount;
+        args[1] = (uint)matrices.Count;
         args[2] = mesh.GetIndexStart(0);
         args[3] = mesh.GetBaseVertex(0);
         args[4] = 0;
@@ -131,6 +154,22 @@ public class IndirectGrassRenderer : MonoBehaviour
         );
     }
 
+    private bool IsInsideAnyStoneBounds(Vector3 position, List<Bounds> boundsList)
+    {
+        Vector3 testPos = position;
+
+        foreach (Bounds bounds in boundsList)
+        {
+            testPos.y = bounds.center.y;
+
+            if (bounds.Contains(testPos))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
     private void OnDisable()
     {
         matrixBuffer?.Release();

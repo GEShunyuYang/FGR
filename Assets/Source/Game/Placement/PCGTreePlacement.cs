@@ -22,10 +22,16 @@ public class PCGTreePlacement : MonoBehaviour
     private static readonly int ColorDepthId = Shader.PropertyToID("_ColorDepth");
     private static readonly int ShadowStrengthId = Shader.PropertyToID("_ShadowStrength");
 
-    [SerializeField] private Color LeafTintA = new Color(0.65f, 0.9f, 0.45f, 1f);
-    [SerializeField] private Color LeafTintB = new Color(0.35f, 0.65f, 0.35f, 1f);
     [SerializeField] private Vector2 LeafDepthRange = new Vector2(0.75f, 1.15f);
     [SerializeField] private Vector2 LeafShadowRange = new Vector2(0.6f, 0.9f);
+
+    [SerializeField, Range(0f, 1f)] private float DryTreeChance = 0.15f;
+
+    [SerializeField] private Color LeafGreenA = new Color(0.45f, 0.75f, 0.32f, 1f);
+    [SerializeField] private Color LeafGreenB = new Color(0.25f, 0.55f, 0.24f, 1f);
+
+    [SerializeField] private Color LeafDryA = new Color(0.90f, 0.66f, 0.25f, 1f);
+    [SerializeField] private Color LeafDryB = new Color(0.58f, 0.38f, 0.16f, 1f);
 
     [ContextMenu("Generate Trees")]
     public void Generate()
@@ -95,6 +101,14 @@ public class PCGTreePlacement : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        foreach (Transform child in transform)
+        {
+            ApplyRandomLeafColor(child.gameObject);
+        }
+    }
+
     void OnDrawGizmos()
     {
         BoxCollider box = GetComponent<BoxCollider>();
@@ -143,7 +157,11 @@ public class PCGTreePlacement : MonoBehaviour
     {
         Renderer[] renderers = tree.GetComponentsInChildren<Renderer>();
 
-        Color tint = Color.Lerp(LeafTintA, LeafTintB, Random.value);
+        bool dry = Random.value < DryTreeChance;
+
+        Color tint = dry
+            ? Color.Lerp(LeafDryA, LeafDryB, Random.value)
+            : Color.Lerp(LeafGreenA, LeafGreenB, Random.value);
         float depth = Random.Range(LeafDepthRange.x, LeafDepthRange.y);
         float shadow = Random.Range(LeafShadowRange.x, LeafShadowRange.y);
 
@@ -154,12 +172,12 @@ public class PCGTreePlacement : MonoBehaviour
             for (int i = 0; i < materials.Length; i++)
             {
                 Material mat = materials[i];
-
+                //Debug.Log($"{tree.name} / {renderer.name} / {mat.name} / {mat.shader.name} / hasDepth:{mat.HasProperty(ColorDepthId)}");
                 if (mat == null || !mat.HasProperty(ColorDepthId))
                 {
                     continue;
                 }
-
+                
                 MaterialPropertyBlock block = new MaterialPropertyBlock();
                 renderer.GetPropertyBlock(block, i);
 

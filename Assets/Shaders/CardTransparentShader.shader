@@ -4,6 +4,7 @@ Shader "FGR/CardTransparent"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1, 1, 1, 1)
+        _Cutoff ("Alpha Cutoff", Range(0, 1)) = 0.5
     }
 
     SubShader
@@ -11,17 +12,16 @@ Shader "FGR/CardTransparent"
         Tags
         {
             "RenderPipeline" = "UniversalPipeline"
-            "RenderType" = "Transparent"
-            "Queue" = "Transparent"
+            "RenderType" = "TransparentCutout"
+            "Queue" = "AlphaTest"
         }
 
         Pass
         {
-            Name "CardTransparent"
+            Name "CardTCut"
             Tags { "LightMode" = "UniversalForward" }
 
-            Blend SrcAlpha OneMinusSrcAlpha
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
             Cull Off
 
@@ -48,6 +48,8 @@ Shader "FGR/CardTransparent"
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
+                float4 _Color;
+                float _Cutoff;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -61,9 +63,10 @@ Shader "FGR/CardTransparent"
             half4 frag(Varyings input) : SV_Target
             {
                 half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                if(col.a > 0.8) col.a = 1;
+                col *= _Color;
 
-                col.rgb = float3(0.2,0.2,0.2);
+                clip(col.a - _Cutoff);
+
                 return col;
             }
 

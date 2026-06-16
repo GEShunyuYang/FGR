@@ -68,13 +68,22 @@ public class GameManager : MonoBehaviour
             CurrentCardDeck = TestCardDeck
         };
 
+        Debug.Log("1 CardManager Init");
         CurrentCardManager.Init(RTBS);
+
+        Debug.Log("2 CardRenderer Init");
         CurrentCardRenderer.Init(CurrentCardManager.instances);
+
+        Debug.Log("3 UIManager Init");
         CurrentUIManager.Init(CurrentCardRenderer);
+
+        Debug.Log("4 BattleManager Init");
         CurrentBattleManager.Init(RTBS, CurrentCardManager, CurrentUIManager);
+
+        Debug.Log("5 Input Init");
         CurrentBattleInputController.Init(CurrentBattleManager);
 
-
+        Debug.Log("6 GameStart");
         CurrentBattleManager.GameStart();
     }
 }
