@@ -32,13 +32,13 @@ Shader "FGR/IndreactGrassShader"
     {
         Tags 
         { 
-          "RenderType" = "TransparentCutout"
-          "Queue" = "AlphaTest"
+          "RenderType" = "Transparent"
+          "Queue" = "Transparent-20"
           "RenderPipeline" = "UniversalPipeline"
         }
 
         LOD 100
-
+        
         Pass
         {
             Name "FakeGrassShadow"
@@ -87,7 +87,7 @@ Shader "FGR/IndreactGrassShader"
                 float2 uv : TEXCOORD0;
                 float height01 : TEXCOORD1;
             };
-
+            
             Varyings ShadowVert(Attributes input)
             {
                 Varyings output;

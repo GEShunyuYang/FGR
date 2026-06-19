@@ -18,7 +18,7 @@ Shader "FGR/RippleShader"
         {
             "RenderPipeline" = "UniversalPipeline"
             "RenderType" = "Transparent"
-            "Queue" = "Transparent-20"
+            "Queue" = "Transparent-40"
         }
 
         Pass
