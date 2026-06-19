@@ -22,6 +22,18 @@ public class IndirectGrassRenderer : MonoBehaviour
 
     [SerializeField] private PCGStonePlacement StonePlacement;
 
+    [SerializeField] private bool UseDensityNoise = true;
+
+    [SerializeField] private float DensityNoiseScale = 0.06f;
+
+    [SerializeField, Range(0f, 1f)]
+    private float DensityThreshold = 0.45f;
+
+    [SerializeField, Range(0.001f, 0.5f)]
+    private float DensitySoftness = 0.12f;
+
+    [SerializeField] private Vector2 DensityNoiseOffset;
+
     private Mesh mesh;
     private Material material;
 
@@ -69,17 +81,26 @@ public class IndirectGrassRenderer : MonoBehaviour
                 continue;
             }
 
+            float density = 1f;
+
+            if (UseDensityNoise && !PassDensityNoise(position, out density))
+            {
+                continue;
+            }
+
             Quaternion rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+
             float widthScale = Random.Range(MinScale, MaxScale);
             float heightScale = Random.Range(MinScale, MaxScale);
 
-            if (Random.value < 0.05f)
+            heightScale *= Mathf.Lerp(0.55f, 1.25f, density);
+
+            if (Random.value < 0.05f * density)
             {
                 heightScale *= Random.Range(1.2f, 2.2f);
             }
 
             Vector3 scale = new Vector3(widthScale, heightScale, widthScale);
-
             matrices.Add(Matrix4x4.TRS(position, rotation, scale));
         }
 
@@ -170,6 +191,24 @@ public class IndirectGrassRenderer : MonoBehaviour
 
         return false;
     }
+
+    private bool PassDensityNoise(Vector3 worldPosition, out float density)
+    {
+        float u = worldPosition.x * DensityNoiseScale + DensityNoiseOffset.x;
+        float v = worldPosition.z * DensityNoiseScale + DensityNoiseOffset.y;
+
+        float noise = Mathf.PerlinNoise(u, v);
+
+        float edge0 = DensityThreshold;
+        float edge1 = DensityThreshold + DensitySoftness;
+
+        density = Mathf.InverseLerp(edge0, edge1, noise);
+        density = Mathf.Clamp01(density);
+        density = density * density * (3f - 2f * density);
+
+        return Random.value < density;
+    }
+
     private void OnDisable()
     {
         matrixBuffer?.Release();

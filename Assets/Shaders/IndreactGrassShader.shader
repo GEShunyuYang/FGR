@@ -18,6 +18,15 @@ Shader "FGR/IndreactGrassShader"
         _BendSpecColor ("Bend Spec Color", Color) = (1, 1, 0.75, 1)
         _BendSpecStrength ("Bend Spec Strength", Range(0, 3)) = 0.8
         _BendSpecPower ("Bend Spec Power", Range(4, 64)) = 24
+
+        _GrassShadowColor ("Grass Shadow Color", Color) = (0.03, 0.05, 0.025, 1)
+        _GrassShadowAlpha ("Grass Shadow Alpha", Range(0, 1)) = 0.18
+        _GrassShadowYOffset ("Grass Shadow Y Offset", Float) = 0.018
+        _GrassShadowFlatten ("Grass Shadow Flatten", Range(0.2, 3)) = 1.4
+        _GrassShadowDirection ("Grass Shadow Direction", Vector) = (-0.5, 0.3, 0, 0)
+        _GrassShadowLength ("Grass Shadow Length", Range(0, 2)) = 0.25
+        _GrassShadowWidth ("Grass Shadow Width", Range(0, 1)) = 0.08
+        _GrassShadowWindStrength ("Grass Shadow Wind Strength", Range(0, 0.3)) = 0.05
     }
     SubShader
     {
@@ -29,16 +38,17 @@ Shader "FGR/IndreactGrassShader"
         }
 
         LOD 100
-        // too consuming, effect not good
-        /*
+
         Pass
         {
-            Name "ShadowCaster"
-            Tags { "LightMode" = "ShadowCaster" }
+            Name "FakeGrassShadow"
+            Tags { "LightMode" = "SRPDefaultUnlit" }
 
-            ZWrite On
+            Blend SrcAlpha OneMinusSrcAlpha
+            ZWrite Off
             ZTest LEqual
             Cull Off
+            Offset -1, -1
 
             HLSLPROGRAM
             #pragma vertex ShadowVert
@@ -49,30 +59,25 @@ Shader "FGR/IndreactGrassShader"
 
             StructuredBuffer<float4x4> _Matrices;
 
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            float _Cutoff;
 
-            TEXTURE2D(_WindNoiseTex);
-            SAMPLER(sampler_WindNoiseTex);
-
-            CBUFFER_START(UnityPerMaterial)
-                float4 _MainTex_ST;
-                float _Cutoff;
-
-                float4 _WindDirection;
-                float _WindNoiseScale;
-                float _WindNoiseSpeed;
-                float _WindStrength;
-
-                float4 _PlayerPosRadius;
-                float _BendStrength;
-            CBUFFER_END
+            float _WindSpeed;
+            float _WindScale;
+            float4 _GrassShadowColor;
+            float _GrassShadowAlpha;
+            float _GrassShadowYOffset;
+            float _GrassShadowFlatten;
+            float2 _GrassShadowDirection;
+            float _GrassShadowLength;
+            float _GrassShadowWidth;
+            float _GrassShadowWindStrength;
 
             struct Attributes
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
-                float3 normal : NORMAL;
                 uint instanceID : SV_InstanceID;
             };
 
@@ -80,6 +85,7 @@ Shader "FGR/IndreactGrassShader"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                float height01 : TEXCOORD1;
             };
 
             Varyings ShadowVert(Attributes input)
@@ -89,65 +95,48 @@ Shader "FGR/IndreactGrassShader"
                 float4x4 m = _Matrices[input.instanceID];
 
                 float3 localPos = input.vertex.xyz;
-
+                float3 originWS = mul(m, float4(0, 0, 0, 1)).xyz;
                 float3 worldPos = mul(m, float4(localPos, 1)).xyz;
-                float3 originalWorldPos = worldPos;
 
-                 // wind
-                float2 baseDir = normalize(_WindDirection.xz + 0.0001);
-                float2 sideDir = float2(-baseDir.y, baseDir.x);
+                float height01 = saturate(localPos.y * 2.0);
 
-                float2 windUV = originalWorldPos.xz * _WindNoiseScale;
-                windUV += baseDir * _Time.y * _WindNoiseSpeed;
+                // Lower the grass to near ground
+                worldPos.y = originWS.y + _GrassShadowYOffset;
 
-                float heightWeight = saturate(localPos.y * 2.0);
+                worldPos.xz = lerp(originWS.xz, worldPos.xz, _GrassShadowFlatten);
 
-                // noise gradient sampling
-                float eps = 0.05;
+                // mimic light
+                float2 shadowDir = normalize(_GrassShadowDirection + 0.0001);
+                worldPos.xz += shadowDir * height01 * _GrassShadowLength;
 
-                float nC = SAMPLE_TEXTURE2D_LOD(_WindNoiseTex, sampler_WindNoiseTex, windUV, 0).r;
-                float nX = SAMPLE_TEXTURE2D_LOD(_WindNoiseTex, sampler_WindNoiseTex, windUV + float2(eps, 0), 0).r;
-                float nY = SAMPLE_TEXTURE2D_LOD(_WindNoiseTex, sampler_WindNoiseTex, windUV + float2(0, eps), 0).r;
+                float side = input.uv.x * 2.0 - 1.0;
+                float2 sideDir = float2(-shadowDir.y, shadowDir.x);
+                worldPos.xz += sideDir * side * _GrassShadowWidth;
 
-                float2 grad = float2(nX - nC, nY - nC);
-                float2 noiseDir = normalize(baseDir + grad * 4.0);
-
-                float windAmount = (nC * 2.0 - 1.0);
-
-                float2 windOffset = noiseDir * windAmount * _WindStrength * heightWeight;
-
-                worldPos.xz += windOffset;
-
-                float windBendAmount = saturate(abs(windAmount) * heightWeight);
-
-                // player interaction
-                float3 playerPos = _PlayerPosRadius.xyz;
-                float radius = _PlayerPosRadius.w;
-
-                float dist = distance(originalWorldPos.xz, playerPos.xz);
-                float bend = saturate(1.0 - dist / radius);
-
-                float3 away = normalize(float3(worldPos.x - playerPos.x, 0, worldPos.z - playerPos.z) + 0.0001);
-                float3 playerOffset = away * bend * _BendStrength * heightWeight;
-
-                worldPos += playerOffset;
-                float3 normalWS = normalize(mul((float3x3)m, input.normal));
+                float wave = sin(_Time.y * _WindSpeed + dot(originWS.xz, shadowDir) * _WindScale);
+                worldPos.xz += shadowDir * wave * _GrassShadowWindStrength;
 
                 output.positionCS = TransformWorldToHClip(worldPos);
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+                output.height01 = height01;
 
                 return output;
             }
 
             half4 ShadowFrag(Varyings input) : SV_Target
             {
-                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                clip(col.a - _Cutoff);
-                return 0;
+                half4 tex = tex2D(_MainTex, input.uv);
+                clip(tex.a - _Cutoff);
+
+                float alpha = tex.a * _GrassShadowAlpha;
+
+                alpha *= lerp(1.0, 0.45, input.height01);
+
+                return half4(_GrassShadowColor.rgb, alpha);
             }
 
             ENDHLSL
-        }*/
+        }
 
         Pass
         {
@@ -304,8 +293,8 @@ Shader "FGR/IndreactGrassShader"
                 clip(col.a - _Cutoff);
 
                 float2 tintUV;
-                tintUV.x = (i.worldPos.x - _TintMapOriginSize.x) / _TintMapOriginSize.z;
-                tintUV.y = (i.worldPos.z - _TintMapOriginSize.y) / _TintMapOriginSize.w;
+                tintUV.x = (i.worldPos.x - _TintMapOriginSize.x) / _TintMapOriginSize.z / 2;
+                tintUV.y = (i.worldPos.z - _TintMapOriginSize.y) / _TintMapOriginSize.w / 2;
 
                 half4 groundTint = tex2D(_GroundTintTex, tintUV);
 
