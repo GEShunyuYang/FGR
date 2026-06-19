@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEngine.Rendering.DebugUI.Table;
+using static UnityEngine.UI.Image;
 
 public class RainReflect : MonoBehaviour
 {
@@ -11,6 +12,10 @@ public class RainReflect : MonoBehaviour
     [SerializeField] private Transform reflectionPlane;
 
     [SerializeField] private RenderTexture reflectionTexture;
+
+    [SerializeField] private RenderTexture rippleTexture;
+
+    [SerializeField] private Camera rippleCamera;
 
     [SerializeField] private LayerMask reflectionMask;
 
@@ -65,5 +70,18 @@ public class RainReflect : MonoBehaviour
 
         Shader.SetGlobalTexture("_PlanarReflectionTex", reflectionTexture);
         Shader.SetGlobalMatrix("_PlanarReflectionVP", vp);
+        Shader.SetGlobalTexture("_RippleTex", rippleTexture);
+
+        float sizeZ = rippleCamera.orthographicSize * 2f;
+        float sizeX = sizeZ * rippleCamera.aspect;
+
+        float originX = rippleCamera.transform.position.x - sizeX * 0.5f;
+        float originZ = rippleCamera.transform.position.z - sizeZ * 0.5f;
+
+        Shader.SetGlobalVector(
+            "_RippleMapOriginSize",
+            new Vector4(originX, originZ, sizeX, sizeZ)
+        );
+        Shader.SetGlobalFloat("_RippleTexelSize", 1f / rippleTexture.width);
     }
 }

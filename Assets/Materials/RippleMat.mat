@@ -98,7 +98,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Alpha: 0.8
+    - _Alpha: 0.18
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 0
@@ -118,7 +118,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DistortionBlend: 0.5
     - _DistortionEnabled: 0
-    - _DistortionStrength: 0.078
+    - _DistortionStrength: 0.001
     - _DistortionStrengthScaled: 0.1
     - _DstBlend: 10
     - _DstBlendAlpha: 10
@@ -134,7 +134,7 @@ Material:
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _RingWidth: 0.083
+    - _RingWidth: 0.01
     - _RippleFalloff: 1.35
     - _RippleSharpness: 9
     - _Smoothness: 0.5
@@ -145,6 +145,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 5
     - _SrcBlendAlpha: 1
+    - _Strength: 0.81
     - _Surface: 1
     - _WorkflowMode: 1
     - _ZWrite: 0
