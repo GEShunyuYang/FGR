@@ -6,6 +6,11 @@ public class DamageResolver
 {
     public float Resolve(CardPlayContext context, float baseDamage)
     {
+        if (Pause.OneHitEnabled && context.Caster is Player)
+        {
+            return 999999f;
+        }
+
         int maxStamina = context.BattleState.MaxStamina;
 
         int currentStamina = context.BattleState.CurrentStamina;

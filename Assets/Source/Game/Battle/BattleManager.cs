@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BattleManager : MonoBehaviour
 {
@@ -14,11 +17,9 @@ public class BattleManager : MonoBehaviour
     private UIManager CurrentUIManager;
 
     // player
-    [SerializeField] private Unit PlayerPrefab;
     private Unit CurrentPlayer;
 
     // enemies
-    [SerializeField] List<Unit> EnemyPrefabs;
     private List<Unit> CurrentEnemies;
 
     // gameplay
@@ -29,7 +30,7 @@ public class BattleManager : MonoBehaviour
     private bool HasMovedThisTurn;
     private bool CanUndoMove;
     private Vector2Int PreviousPlayerCell;
-    private Vector2Int LastMovedCell;
+    private Vector2Int LastMovedCell; // not used 
 
     private enum BoardPreviewMode
     {
@@ -42,25 +43,23 @@ public class BattleManager : MonoBehaviour
 
     private void Awake()
     {
-        if (!PlayerPrefab || EnemyPrefabs.Count == 0) Debug.LogError("Battle Manager is not set");
-
         CurrentEnemies = new List<Unit>();
         Board = FindFirstObjectByType<Board>();
         Queue = new();
         DMGResolver = new();
     }
 
-    public void Init(RuntimeBattleState RTBattleState, CardManager cardManager, UIManager uiManager)
+    public void Init(RuntimeBattleState rtbs, CardManager cardManager, UIManager uiManager)
     {
+        CurrentBattleState = rtbs;
         CurrentUIManager = uiManager;
         CurrentCardManager = cardManager;
-        CurrentBattleState = RTBattleState;
 
         // chess board
         Board.Init();
 
         // player
-        CurrentPlayer = Instantiate(PlayerPrefab);
+        CurrentPlayer = Instantiate(rtbs.Player.Prefab);
         CurrentPlayer.Init(Board, CurrentBattleState.Player);
         HPBarView hpBar = CurrentUIManager.CreateHPBar(CurrentPlayer);
         CurrentPlayer.BindHealthBar(hpBar);
@@ -68,18 +67,11 @@ public class BattleManager : MonoBehaviour
         // enemies
         foreach (UnitRuntime enemy in CurrentBattleState.Enemies)
         {
-            Unit EnemyUnit;
-            switch (enemy.Config.type)
-            {
-                default:
-                    if (!EnemyPrefabs[0]) break;
-                    EnemyUnit = Instantiate(EnemyPrefabs[0]);
-                    EnemyUnit.Init(Board, enemy);
-                    HPBarView hpBarE = CurrentUIManager.CreateHPBar(EnemyUnit);
-                    EnemyUnit.BindHealthBar(hpBarE);
-                    CurrentEnemies.Add(EnemyUnit);
-                    break;
-            }
+            Unit enemyUnit = Instantiate(enemy.Prefab);
+            enemyUnit.Init(Board, enemy);
+            HPBarView hpBarE = CurrentUIManager.CreateHPBar(enemyUnit);
+            enemyUnit.BindHealthBar(hpBarE);
+            CurrentEnemies.Add(enemyUnit);
         }
     }
 
@@ -90,7 +82,8 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator StartPlayerTurnCoroutine()
     {
-        yield return CurrentUIManager.ShowTurnBanner("Your Turn", .7f);
+        yield return CurrentUIManager.ShowTurnBanner(
+            LocalizationManager.Instance.GetText("ui.yourturn"), .7f);
 
         HasMovedThisTurn = false;
         CanUndoMove = false;
@@ -152,9 +145,14 @@ public class BattleManager : MonoBehaviour
 
     private IEnumerator StartEnemyTurnCoroutine()
     {
-        yield return CurrentUIManager.ShowTurnBanner("Enemy's Turn", .7f);
+        yield return CurrentUIManager.ShowTurnBanner(
+            LocalizationManager.Instance.GetText("ui.enemyturn"), .7f);
 
-        Queue.Enqueue(new MoveAction(Board, CurrentEnemies[0], new Vector2Int(Random.Range(0, 5), Random.Range(0, 5))));
+        foreach (Enemy enemy in CurrentEnemies)
+        {
+            enemy.BuildTurnActions(CurrentPlayer, Board, Queue);
+        }
+
         if (Queue.HasActions)
         {
             ChangeState(BattleState.EnemyTakingActions);
@@ -171,7 +169,7 @@ public class BattleManager : MonoBehaviour
     }
     private void EndBattle()
     {
-
+        EventsHandler.TriggerEvent(BattleEvents.END_BATTLE);
     }
 
     public bool TryPlayCard(CardInstance card, Unit target)
@@ -405,7 +403,7 @@ public class BattleManager : MonoBehaviour
     private List<Vector2Int> GetMovePreviewCells()
     {
         List<Vector2Int> cells = new();
-        Vector2Int origin = CurrentPlayer.GridPos;
+        Vector2Int origin = CurrentPlayer.CurrentPos;
         int range = CurrentPlayer.MoveRange;
 
         for (int x = 0; x < Board.BoardWidth; x++)
@@ -512,6 +510,18 @@ public class BattleManager : MonoBehaviour
                 damage = Mathf.RoundToInt(DMGResolver.Resolve(context, linearDamageEffect.CardDamage));
                 break;
             }
+
+            if(effect is SquareDamageEffect squareDamageEffect)
+            {
+                damage = Mathf.RoundToInt(DMGResolver.Resolve(context, squareDamageEffect.CardDamage));
+                break;
+            }
+
+            if(effect is RectangleDamageEffect rectangleDamageEffect)
+            {
+                damage = Mathf.RoundToInt(DMGResolver.Resolve(context, rectangleDamageEffect.CardDamage));
+                break;
+            }
         }
 
         return new CardDescriptionPreview(context.Card, damage);
@@ -535,7 +545,7 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        PreviousPlayerCell = CurrentPlayer.GridPos;
+        PreviousPlayerCell = CurrentPlayer.CurrentPos;
         LastMovedCell = targetCell;
 
         HasMovedThisTurn = true;
@@ -555,14 +565,14 @@ public class BattleManager : MonoBehaviour
             return false;
         }
 
-        if (target == CurrentPlayer.GridPos) return false;
+        if (target == CurrentPlayer.CurrentPos) return false;
 
         if (!Board.IsInside(target)) return false;
 
         if (Board.IsOccupied(target)) return false;
 
-        int distance = Mathf.Abs(CurrentPlayer.GridPos.x - target.x)
-                     + Mathf.Abs(CurrentPlayer.GridPos.y - target.y);
+        int distance = Mathf.Abs(CurrentPlayer.CurrentPos.x - target.x)
+                     + Mathf.Abs(CurrentPlayer.CurrentPos.y - target.y);
 
         return distance <= CurrentPlayer.MoveRange;
     }
@@ -585,21 +595,6 @@ public class BattleManager : MonoBehaviour
         CanUndoMove = false;
         ShowMovePreview();
         return true;
-    }
-
-    private bool paused = false;
-    public void PauseGame()
-    {
-        Debug.Log($"{paused}");
-        paused = !paused;
-
-        if (paused)
-        {
-            CurrentUIManager.ShowPause();
-        } else
-        {
-            CurrentUIManager.ClearPause();
-        }
     }
 }
 

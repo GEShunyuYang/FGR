@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: CardBackground
-  m_Shader: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
+  m_Shader: {fileID: 4800000, guid: 09908c4e2abdcbb4dac199a0a47254e6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -16,9 +16,8 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2000
-  stringTagMap:
-    RenderType: Opaque
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
@@ -46,6 +45,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HoloNoiseTex:
+        m_Texture: {fileID: 2800000, guid: 834c2a530966bd34eb9762c13c919276, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -82,8 +85,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _ActiveTime: 0.45
     - _AlphaClip: 0
     - _AlphaToMask: 0
+    - _BandPower: 3
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BlendOp: 0
@@ -97,12 +102,21 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _FadeTime: 0.12
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _HoloBandSoftness: 0.04
+    - _HoloBandWidth: 0.12
+    - _HoloIntensity: 0.25
+    - _HoloNoiseScale: 1
+    - _HoloNoiseSpeed: 0.25
+    - _HoloScale: 24
+    - _HoloSpeed: 0.4
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
+    - _PulsePeriod: 2.5
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _SampleGI: 0
@@ -118,6 +132,12 @@ Material:
     - _BaseColor: {r: 0.8742138, g: 0.8742138, b: 0.8742138, a: 1}
     - _Color: {r: 0.8742138, g: 0.8742138, b: 0.8742138, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HoloColor0: {r: 0.19999996, g: 0.8, b: 1, a: 1}
+    - _HoloColor1: {r: 0.7, g: 0.39999998, b: 1, a: 1}
+    - _HoloColor2: {r: 1, g: 0.39999998, b: 0.9, a: 1}
+    - _HoloColor3: {r: 1, g: 0.9, b: 0.29999998, a: 1}
+    - _HoloColorA: {r: 0.29999998, g: 0.9, b: 1, a: 1}
+    - _HoloColorB: {r: 1, g: 0.39999998, b: 0.9, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &9179698072599638310

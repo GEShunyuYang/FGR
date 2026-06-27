@@ -12,6 +12,7 @@ public static class CardCsvImporter
     private const string EffectOutputDir = "Assets/Data/CardEffects";
     private const string ConditionOutputDir = "Assets/Data/CardConditions";
     private const string TargetingOutputDir = "Assets/Data/CardTargetingRules";
+    private const string ContentPrefabDir = "Assets/Prefabs/Card/CardContents";
 
     [MenuItem("FGR/Import Cards From CSV")]
     public static void Import()
@@ -20,14 +21,13 @@ public static class CardCsvImporter
         EnsureFolder(EffectOutputDir);
         EnsureFolder(ConditionOutputDir);
         EnsureFolder(TargetingOutputDir);
+        EnsureFolder(ContentPrefabDir);
 
-        string[] lines = File.ReadAllLines(CardCsvPath);
+        List<string[]> rows = CsvUtility.Parse(File.ReadAllText(CardCsvPath));
 
-        for (int i = 1; i < lines.Length; i++)
+        for (int i = 1; i < rows.Count; i++)
         {
-            if (string.IsNullOrWhiteSpace(lines[i])) continue;
-
-            string[] columns = lines[i].Split(',');
+            string[] columns = rows[i];
 
             string id = columns[0].Trim();
             string nameKey = columns[1].Trim();
@@ -36,14 +36,19 @@ public static class CardCsvImporter
             string effectsRaw = columns[4].Trim();
             string targetingRaw = columns[5].Trim();
             string conditionsRaw = columns[6].Trim();
+            string contentId = columns[7].Trim();
 
             CardData card = LoadOrCreateCard(id);
 
             SerializedObject so = new SerializedObject(card);
 
+            GameObject contentPrefab = AssetDatabase.LoadAssetAtPath<GameObject>
+                ($"{ContentPrefabDir}/{contentId}.prefab");
+
             so.FindProperty("CardId").stringValue = id;
             so.FindProperty("CardNameKey").stringValue = nameKey;
             so.FindProperty("BaseCost").intValue = cost;
+            so.FindProperty("ContentPrefab").objectReferenceValue = contentPrefab;
             so.FindProperty("DescriptionKey").stringValue = string.IsNullOrWhiteSpace(descriptionKey)
                 ? $"card.{id}.desc"
                 : descriptionKey;
@@ -103,6 +108,10 @@ public static class CardCsvImporter
         {
             int range = int.Parse(parts[1].Trim());
             return GetOrCreateLinearRangeTargetingRule(range);
+        } else if (type == "IntervalRange")
+        {
+            int range = int.Parse(parts[1].Trim());
+            return GetOrCreateIntervalRangeTargetingRule(range);
         }
         Debug.LogWarning($"Unknown targeting rule: {raw}");
         return null;
@@ -128,6 +137,14 @@ public static class CardCsvImporter
             {
                 float damage = float.Parse(parts[1].Trim());
                 effects.Add(GetOrCreateLinearDamageEffect(damage));
+            } else if (type == "RectangleDamage")
+            {
+                float damage = float.Parse(parts[1].Trim());
+                effects.Add(GetOrCreateRectangleDamageEffect(damage));
+            } else if (type == "SquareDamage")
+            {
+                float damage = float.Parse(parts[1].Trim());
+                effects.Add(GetOrCreateSquareDamageEffect(damage));
             }
             else
             {
@@ -251,6 +268,64 @@ public static class CardCsvImporter
         EditorUtility.SetDirty(effect);
         return effect;
     }
+
+    private static IntervalRangeTargetRule GetOrCreateIntervalRangeTargetingRule(int range)
+    {
+        string path = $"{TargetingOutputDir}/IntervalRange_{range}.asset";
+        IntervalRangeTargetRule rule = AssetDatabase.LoadAssetAtPath<IntervalRangeTargetRule>(path);
+
+        if (rule == null)
+        {
+            rule = ScriptableObject.CreateInstance<IntervalRangeTargetRule>();
+            AssetDatabase.CreateAsset(rule, path);
+        }
+
+        SerializedObject so = new SerializedObject(rule);
+        so.FindProperty("Interval").intValue = range;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(rule);
+        return rule;
+    }
+
+    private static SquareDamageEffect GetOrCreateSquareDamageEffect(float damage)
+    {
+        string path = $"{EffectOutputDir}/SquareDamage_{damage}.asset";
+        SquareDamageEffect effect = AssetDatabase.LoadAssetAtPath<SquareDamageEffect>(path);
+
+        if (effect == null)
+        {
+            effect = ScriptableObject.CreateInstance<SquareDamageEffect>();
+            AssetDatabase.CreateAsset(effect, path);
+        }
+
+        SerializedObject so = new SerializedObject(effect);
+        so.FindProperty("Damage").floatValue = damage;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(effect);
+        return effect;
+    }
+
+    private static RectangleDamageEffect GetOrCreateRectangleDamageEffect(float damage)
+    {
+        string path = $"{EffectOutputDir}/RectangleDamage_{damage}.asset";
+        RectangleDamageEffect effect = AssetDatabase.LoadAssetAtPath<RectangleDamageEffect>(path);
+
+        if (effect == null)
+        {
+            effect = ScriptableObject.CreateInstance<RectangleDamageEffect>();
+            AssetDatabase.CreateAsset(effect, path);
+        }
+
+        SerializedObject so = new SerializedObject(effect);
+        so.FindProperty("Damage").floatValue = damage;
+        so.ApplyModifiedProperties();
+
+        EditorUtility.SetDirty(effect);
+        return effect;
+    }
+
     private static void EnsureFolder(string folder)
     {
         if (AssetDatabase.IsValidFolder(folder)) return;

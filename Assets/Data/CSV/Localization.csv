@@ -1,7 +1,32 @@
 ﻿Key,zh,en
+,,
+ui.start,开始游戏,Start Game
+ui.setting,设置,Setting
+ui.exit,退出游戏,Exit Game
+ui.title,抵达冰峰,Reaching The IcePeak
+ui.next,下一关,Next Level
+ui.newcard,获得新卡牌！,Get a new card!
+ui.press,按下任意按键以继续…,Press Any key to continue…
+ui.tryagain,再试一次,Try Again
+ui.levelup,升级！,Level Up！
+ui.thanks,感谢游玩！,Thanks for Playing!
+,,
+ui.audio,音频控制,Volume Control
+ui.language,语言选择,Language Selection
+ui.onehit,一击必杀开关,One Hit Switch
+ui.back,ESC键后退,ESC to back
+ui.yourturn,你的回合！,Your Turn!
+ui.enemyturn,敌人回合,Enemy Turn
+,,
 card.melee.name,近战攻击,Melee Attack
-card.melee.desc,范围{range}，造成{damage}点伤害,Range {range}. Deal {damage} damage
+card.melee.desc,"范围{range}, 造成{damage}点伤害。","Range {range}, deal {damage} damage."
 card.heavy.name,重击,Heavy Strike
-card.heavy.desc,范围{range}，造成{damage}点伤害,Range {range}. Deal {damage} damage
+card.heavy.desc,"范围{range}, 造成{damage}点伤害。","Range {range}, deal {damage} damage."
 card.puncture.name,穿刺攻击,Puncture Attack
-card.puncture.desc,直线范围{range}，造成{damage}点伤害,Linear range {range}. Deal {damage} damage
+card.puncture.desc,"直线范围{range}, 对范围内所有人造成{damage}点伤害。","Linear range {range}, deal {damage} damage to all enemies in range."
+card.javelin.name,标枪,javelin
+card.javelin.desc,"间隔{range}, 造成{damage}点伤害。","Interval {range}, deal {damage} damage."
+card.hammer.name,重锤,Hammer
+card.hammer.desc,"前方矩形范围, 对范围内所有人造成{damage}点伤害。","Rectangle range ahead {range}, deal {damage} damage to all enemies in range."
+card.magic.name,魔法,Magic
+card.magic.desc,"间隔{range}, 方形范围，对范围内所有人造成{damage}点伤害。","Interval {range}, Square range 1, deal {damage} damage to all enemies in range."

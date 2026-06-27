@@ -8,11 +8,13 @@ public class CardData : ScriptableObject
 {
     public string CardId;
 
-    public string CardNameKey;
+    public string CardNameKey; //i18n
 
     public int BaseCost;
 
     public string DescriptionKey;
+
+    public GameObject ContentPrefab; // card show view
 
     public CardTargetingRule TargetingRule;
 

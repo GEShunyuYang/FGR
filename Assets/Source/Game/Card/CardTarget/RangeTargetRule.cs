@@ -16,7 +16,7 @@ public class RangeTargetRule : CardTargetingRule
     {
         List<Vector2Int> cells = new();
 
-        Vector2Int origin = context.Caster.GridPos;
+        Vector2Int origin = context.Caster.CurrentPos;
 
         for (int x = 0; x < context.Board.BoardWidth; x++)
         {
@@ -44,8 +44,8 @@ public class RangeTargetRule : CardTargetingRule
             return false;
         }
 
-        int distance = Mathf.Abs(context.Caster.GridPos.x - context.Target.GridPos.x)
-                     + Mathf.Abs(context.Caster.GridPos.y - context.Target.GridPos.y);
+        int distance = Mathf.Abs(context.Caster.CurrentPos.x - context.Target.CurrentPos.x)
+                     + Mathf.Abs(context.Caster.CurrentPos.y - context.Target.CurrentPos.y);
 
         return distance <= MaxRange;
     }

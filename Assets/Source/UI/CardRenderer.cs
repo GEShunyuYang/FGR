@@ -96,12 +96,6 @@ public class CardRenderer : MonoBehaviour
 
     private void UpdateTexture()
     {
-        for (int i = 0; i < CRVs.Count; i++) {
-            if(CRVs[i].CardTransform != null)
-            {
-                CRVs[i].CardTransform.Rotate(0, (i + 1) * 0.2f, 0);
-            }
-        }
         CardsCamera.Render();
     }
 

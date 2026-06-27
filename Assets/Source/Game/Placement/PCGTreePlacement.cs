@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class PCGTreePlacement : MonoBehaviour
@@ -9,6 +10,8 @@ public class PCGTreePlacement : MonoBehaviour
     [SerializeField] public int count = 50;
 
     public LayerMask groundMask;
+
+    [SerializeField] private BoxCollider inclusion;
 
     [SerializeField] private BoxCollider[] exclusions;
 
@@ -38,9 +41,9 @@ public class PCGTreePlacement : MonoBehaviour
     {
         placedPositions.Clear();
 
-        BoxCollider box = GetComponent<BoxCollider>();
+        if (inclusion == null) { Debug.Log("Placement inclusion is not set!"); }
 
-        Bounds bounds = box.bounds;
+        Bounds bounds = inclusion.bounds;
 
         for (int i = 0; i < count; i++)
         {
@@ -111,13 +114,13 @@ public class PCGTreePlacement : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        BoxCollider box = GetComponent<BoxCollider>();
+        if (inclusion == null) { return; }
 
         Gizmos.color = Color.green;
 
         Gizmos.matrix = transform.localToWorldMatrix;
 
-        Gizmos.DrawWireCube(box.center, box.size);
+        Gizmos.DrawWireCube(inclusion.center, inclusion.size);
     }
 
     [ContextMenu("Clear Trees")]
@@ -127,6 +130,11 @@ public class PCGTreePlacement : MonoBehaviour
 
         foreach (Transform child in transform)
         {
+            if (child.GetComponent<BoxCollider>() != null)
+            {
+                continue;
+            }
+
             children.Add(child.gameObject);
         }
 

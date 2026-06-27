@@ -51,6 +51,11 @@ public static class CardTextBuilder
             return LinearRangeRule.MaxRangeValue;
         }
 
+        if(card.TargetingRule is IntervalRangeTargetRule IntervalRangeRule)
+        {
+            return IntervalRangeRule.IntervalValue;
+        }
+
         return 0;
     }
 
@@ -69,6 +74,14 @@ public static class CardTextBuilder
             } else if (effect is LinearDamageEffect lineDamageEffect)
             {
                 return Mathf.RoundToInt(lineDamageEffect.CardDamage);
+            }
+            else if (effect is RectangleDamageEffect rectangleDamageEffect)
+            {
+                return Mathf.RoundToInt(rectangleDamageEffect.CardDamage);
+            }
+            else if (effect is SquareDamageEffect squareDamageEffect)
+            {
+                return Mathf.RoundToInt(squareDamageEffect.CardDamage);
             }
         }
 

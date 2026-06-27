@@ -20,4 +20,16 @@ public static class UIEvents
 public static class TurnEvents
 {
     public const string END_TURN = "End_Turn";
+    
+}
+
+public static class BattleEvents
+{
+    public const string END_BATTLE = "End_Battle";
+}
+
+public static class SceneEvents
+{
+    public const string NEXT_SCENE = "Next_Scene";
+    public const string TRY_AGAIN = "Try_Again";
 }

@@ -19,6 +19,8 @@ public class UnitConfig
     public int MoveRange;
 
     public float MaxHealth;
+
+    public float MoveSpeed = 2f;
 }
 
 public class UnitRuntime
@@ -28,11 +30,15 @@ public class UnitRuntime
     public float CurrentHP;
 
     public Vector2Int GridPos;
+
+    public Unit Prefab;
 }
 
 public abstract class Unit : MonoBehaviour
 {
-    public Vector2Int GridPos;
+    private Vector2Int GridPos;
+
+    public Vector2Int CurrentPos => GridPos;
 
     private HPBarView HPBar;
 
@@ -54,15 +60,39 @@ public abstract class Unit : MonoBehaviour
     public virtual void Init(Board board, UnitRuntime unitRuntime) { 
         runtime = unitRuntime;
         GridPos = runtime.GridPos;
-        board.TryPlaceUnit(this, GridPos);
+        if (!board.TryPlaceUnit(this, GridPos)) {
+            Debug.LogError($"Place unit at ({GridPos.x}, {GridPos.y}) failed");
+            return;
+        };
         transform.position = board.GridToWorld(runtime.GridPos);
         Animator = GetComponent<Animator>();
+        snowPainter = FindFirstObjectByType<SnowDeformPainter>();
     }
 
     public void BindHealthBar(HPBarView view)
     {
         HPBar = view;
         HPBar.SetHealth(runtime.CurrentHP, runtime.Config.MaxHealth);
+    }
+
+    private SnowDeformPainter snowPainter;
+    private Vector3 lastSnowStampPos;
+
+    public void TryStampSnow()
+    {
+        if (snowPainter == null)
+        {
+            Debug.Log("Empty snowpainter");
+            return;
+        }
+
+        if (Vector3.Distance(transform.position, lastSnowStampPos) < 0.2f)
+        {
+            return;
+        }
+
+        snowPainter.Stamp(transform.position, 0.02f, 0.05f);
+        lastSnowStampPos = transform.position;
     }
 
     public IEnumerator MoveTo(Board board, Vector2Int targetCell)
@@ -78,7 +108,7 @@ public abstract class Unit : MonoBehaviour
         Vector2Int from = board.WorldToGrid(start);
         Vector3 target = board.GridToWorld(targetCell);
 
-        float moveSpeed = 2f;
+        float moveSpeed = Mathf.Max(0.1f, runtime.Config.MoveSpeed);
 
         while (Vector3.Distance(transform.position, target) > 0.02f)
         {
@@ -87,10 +117,10 @@ public abstract class Unit : MonoBehaviour
                 target,
                 moveSpeed * Time.deltaTime
             );
-
+            TryStampSnow();
             yield return null;
         }
-
+        
         transform.position = target;
 
         GridPos = targetCell;

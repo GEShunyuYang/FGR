@@ -8,13 +8,10 @@ public enum EnemyType
 }
 public class Enemy : Unit
 {
-    void Start()
-    {
-        
-    }
+    [SerializeField] private EnemyAI Brain;
 
-    void Update()
+    public void BuildTurnActions(Unit player, Board board, BattleActionQueue queue)
     {
-        
+        Brain.BuildActions(this, player, board, queue);
     }
 }

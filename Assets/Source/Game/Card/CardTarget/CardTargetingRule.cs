@@ -10,11 +10,11 @@ public abstract class CardTargetingRule : ScriptableObject
 
     public abstract bool IsValidTarget(CardPlayContext context);
 
-        public virtual List<Vector2Int> GetImpactCells(CardPlayContext context)
+    public virtual List<Vector2Int> GetImpactCells(CardPlayContext context)
     {
         if (context.Target != null)
         {
-            return new List<Vector2Int> { context.Target.GridPos };
+            return new List<Vector2Int> { context.Target.CurrentPos };
         }
         /*
         if (context.TargetCell.HasValue)

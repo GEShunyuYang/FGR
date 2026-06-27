@@ -34,6 +34,8 @@ public class IndirectGrassRenderer : MonoBehaviour
 
     [SerializeField] private Vector2 DensityNoiseOffset;
 
+    [SerializeField] private Light lightsource;
+
     private Mesh mesh;
     private Material material;
 
@@ -50,6 +52,7 @@ public class IndirectGrassRenderer : MonoBehaviour
     private static readonly int GroundTintTexId = Shader.PropertyToID("_GroundTintTex");
     private static readonly int TintStrengthId = Shader.PropertyToID("_TintStrength");
     private static readonly int TintMapOriginSizeId = Shader.PropertyToID("_TintMapOriginSize");
+    private static readonly int LightSourceId = Shader.PropertyToID("_GrassShadowDirection");
 
     private void Start()
     {
@@ -97,7 +100,7 @@ public class IndirectGrassRenderer : MonoBehaviour
 
             if (Random.value < 0.05f * density)
             {
-                heightScale *= Random.Range(1.2f, 2.2f);
+                heightScale *= Random.Range(1.5f, 2.2f);
             }
 
             Vector3 scale = new Vector3(widthScale, heightScale, widthScale);
@@ -140,6 +143,15 @@ public class IndirectGrassRenderer : MonoBehaviour
         );
 
         material.SetVector(TintMapOriginSizeId, originSize);
+
+        Vector3 lightDir = lightsource.transform.forward;
+        Vector2 shadowDir = new Vector2(lightDir.x, lightDir.z);
+
+        if (shadowDir.sqrMagnitude > 0.0001f)
+        {
+            shadowDir.Normalize();
+            material.SetVector(LightSourceId, new Vector4(shadowDir.x, 0f, shadowDir.y, 0f));
+        }
     }
 
     private void Update()

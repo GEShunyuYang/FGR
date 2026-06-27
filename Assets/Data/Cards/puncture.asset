@@ -15,9 +15,10 @@ MonoBehaviour:
   CardId: puncture
   CardNameKey: card.puncture.name
   BaseCost: 2
-  DescriptionKey: card.heavy.desc
+  DescriptionKey: card.puncture.desc
+  ContentPrefab: {fileID: 6659601394455217638, guid: 0ada70c511aefca4ebe57ac3b503a26a, type: 3}
   TargetingRule: {fileID: 11400000, guid: e593fd99de27aea4b8346a215a61e321, type: 2}
   Effects:
-  - {fileID: 11400000, guid: 1fd2ec5011dd9064095cbfd67cb3aa14, type: 2}
+  - {fileID: 11400000, guid: b86fd412e5a6b1a4c8b67f89f5908be8, type: 2}
   Conditions:
   - {fileID: 11400000, guid: 814ced348a36a3443ad548633bece0bd, type: 2}

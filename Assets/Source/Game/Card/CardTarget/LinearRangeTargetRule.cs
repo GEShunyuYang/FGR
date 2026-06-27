@@ -20,7 +20,7 @@ public class LinearRangeTargetRule : CardTargetingRule
             return cells;
         }
 
-        Vector2Int origin = context.Caster.GridPos;
+        Vector2Int origin = context.Caster.CurrentPos;
 
         for (int x = 0; x < context.Board.BoardWidth; x++)
         {
@@ -45,7 +45,7 @@ public class LinearRangeTargetRule : CardTargetingRule
             return false;
         }
 
-        return IsCellInLinearRange(context.Caster.GridPos, context.Target.GridPos);
+        return IsCellInLinearRange(context.Caster.CurrentPos, context.Target.CurrentPos);
     }
 
     private bool IsCellInLinearRange(Vector2Int origin, Vector2Int cell)
@@ -75,8 +75,8 @@ public class LinearRangeTargetRule : CardTargetingRule
             return cells;
         }
 
-        Vector2Int origin = context.Caster.GridPos;
-        Vector2Int target = context.Target.GridPos;
+        Vector2Int origin = context.Caster.CurrentPos;
+        Vector2Int target = context.Target.CurrentPos;
 
         Vector2Int direction = GetDirection(origin, target);
 

@@ -22,10 +22,6 @@ public class BattleInputController : MonoBehaviour
         {
             TryClickBoardCell();
         }
-
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            CurrentBattleManager.PauseGame();
-        }
     }
 
     public void OnLanguageChange()

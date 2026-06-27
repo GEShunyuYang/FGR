@@ -69,7 +69,7 @@ Shader "FGR/IndreactGrassShader"
             float _GrassShadowAlpha;
             float _GrassShadowYOffset;
             float _GrassShadowFlatten;
-            float2 _GrassShadowDirection;
+            float4 _GrassShadowDirection;
             float _GrassShadowLength;
             float _GrassShadowWidth;
             float _GrassShadowWindStrength;
@@ -103,10 +103,9 @@ Shader "FGR/IndreactGrassShader"
                 // Lower the grass to near ground
                 worldPos.y = originWS.y + _GrassShadowYOffset;
 
-                worldPos.xz = lerp(originWS.xz, worldPos.xz, _GrassShadowFlatten);
-
-                // mimic light
-                float2 shadowDir = normalize(_GrassShadowDirection + 0.0001);
+                //worldPos.xz = lerp(originWS.xz, worldPos.xz, _GrassShadowFlatten);
+                worldPos.xz = originWS.xz;
+                float2 shadowDir = normalize(_GrassShadowDirection.xz + 0.0001);
                 worldPos.xz += shadowDir * height01 * _GrassShadowLength;
 
                 float side = input.uv.x * 2.0 - 1.0;
@@ -293,8 +292,8 @@ Shader "FGR/IndreactGrassShader"
                 clip(col.a - _Cutoff);
 
                 float2 tintUV;
-                tintUV.x = (i.worldPos.x - _TintMapOriginSize.x) / _TintMapOriginSize.z / 2;
-                tintUV.y = (i.worldPos.z - _TintMapOriginSize.y) / _TintMapOriginSize.w / 2;
+                tintUV.x = (i.worldPos.x - _TintMapOriginSize.x) / _TintMapOriginSize.z / 3;
+                tintUV.y = (i.worldPos.z - _TintMapOriginSize.y) / _TintMapOriginSize.w / 3;
 
                 half4 groundTint = tex2D(_GroundTintTex, tintUV);
 

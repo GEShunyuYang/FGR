@@ -22,7 +22,6 @@ public class LocalizationManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
         LoadLocalizationCsv();
     }
@@ -37,22 +36,15 @@ public class LocalizationManager : MonoBehaviour
             return;
         }
 
-        string[] lines = LocalizationCsv.text.Split('\n');
+        List<string[]> rows = CsvUtility.Parse(LocalizationCsv.text);
 
-        for (int i = 1; i < lines.Length; i++)
+        for (int i = 1; i < rows.Count; i++)
         {
-            string line = lines[i].Trim();
-
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                continue;
-            }
-
-            string[] columns = line.Split(',');
+            string[] columns = rows[i];
 
             if (columns.Length < 3)
             {
-                Debug.LogWarning($"Invalid localization row: {line}");
+                Debug.LogWarning($"Invalid localization row: {string.Join(",", columns)}");
                 continue;
             }
 
@@ -61,10 +53,10 @@ public class LocalizationManager : MonoBehaviour
             string en = columns[2].Trim();
 
             texts[key] = new Dictionary<Language, string>
-            {
-                { Language.Zh, zh },
-                { Language.En, en }
-            };
+                {
+                    { Language.Zh, zh },
+                    { Language.En, en }
+                };
         }
     }
 

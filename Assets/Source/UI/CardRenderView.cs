@@ -8,18 +8,29 @@ public class CardRenderView : MonoBehaviour
     [SerializeField] private TMP_Text cardName;
     [SerializeField] private TMP_Text cardCost;
     [SerializeField] private TMP_Text description;
-    [SerializeField] private Transform AnimatedObject; // temporal use
+    [SerializeField] private Transform ContentRoot;
     public Renderer CardRenderer => CRenderer;
-    public Transform CardTransform => AnimatedObject;
 
     [SerializeField] private Renderer CRenderer;
 
     private CardInstance UsedCardInstance;
 
+    private GameObject spawnedContent;
+
     public void Bind(CardInstance card)
     {
         UsedCardInstance = card;
         RefreshText();
+
+        if (spawnedContent != null)
+        {
+            Destroy(spawnedContent);
+        }
+
+        if (card.Data.ContentPrefab != null)
+        {
+            spawnedContent = Instantiate(card.Data.ContentPrefab, ContentRoot);
+        }
     }
 
     private void OnEnable()

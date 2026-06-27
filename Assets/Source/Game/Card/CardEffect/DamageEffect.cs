@@ -15,7 +15,7 @@ public class DamageEffect : CardEffect
 
         List<Vector2Int> impactCells = context.Card.Data.TargetingRule.GetImpactCells(context);
 
-        queue.Enqueue(new FaceTargetAction(context.Caster, context.Target.GridPos));
+        queue.Enqueue(new FaceTargetAction(context.Caster, context.Target.CurrentPos));
 
         queue.Enqueue(new PlayAnimationAction(context.Caster, UnitAnimationType.Attack));
 
