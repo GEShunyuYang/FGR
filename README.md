@@ -93,7 +93,7 @@ Animals FREE - Animated Low Poly 3D Models: https://assetstore.unity.com/package
 Devil animated character: https://assetstore.unity.com/packages/3d/characters/humanoids/fantasy/devil-animated-character-60777  
 Fantasy Monster Evolution Pack 40-41–42 – Game Ready Creatures | PixeliusVita: https://assetstore.unity.com/packages/3d/characters/creatures/fantasy-monster-evolution-pack-40-41-42-game-ready-creatures-pix-382222  
 3D Fantasy Wood/Beginner Fantasy Weapon: https://assetstore.unity.com/packages/3d/props/weapons/3d-fantasy-wood-beginner-fantasy-weapon-278607  
-Fantasy character: https://assetstore.unity.com/packages/3d/characters/fantasy-character-363582
+Fantasy character: https://assetstore.unity.com/packages/3d/characters/fantasy-character-363582  
 Low Poly Environment - Nature Free - LOWPOLY MEDIEVAL FANTASY SERIES: https://assetstore.unity.com/packages/3d/environments/low-poly-environment-nature-free-lowpoly-medieval-fantasy-series-187052  
 
 Some Animations are from Mixamo
