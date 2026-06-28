@@ -10,7 +10,7 @@ public class TutorialManager : MonoBehaviour
 
     public bool IsPlaying { get; private set; }
 
-    private TutorialPageView currentPage;
+    private TutorialMaskView currentPage;
 
     private void Awake()
     {
@@ -43,7 +43,7 @@ public class TutorialManager : MonoBehaviour
     {
         IsPlaying = true;
 
-        foreach (TutorialPageView prefab in sequence.Pages)
+        foreach (TutorialMaskView prefab in sequence.Pages)
         {
             if (prefab == null) continue;
 

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8029597673306938222}
   - component: {fileID: 7045314691043436686}
   m_Layer: 0
-  m_Name: shadow1
+  m_Name: fullshadow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1779.5, y: 851}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8029597673306938222
 CanvasRenderer:
@@ -293,7 +293,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press the spacebar to switch tutorial pages.
+  m_text: Press the spacebar to switch tutorial pages...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6e3097faac17a0a4197b3d858a128521, type: 2}
   m_sharedMaterial: {fileID: -8733163950162659809, guid: 6e3097faac17a0a4197b3d858a128521, type: 2}
@@ -302,8 +302,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4285232639
-  m_fontColor: {r: 1, g: 0.4570632, b: 0.41823888, a: 1}
+    rgba: 4278196973
+  m_fontColor: {r: 0.9308176, g: 0.103067815, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -407,10 +407,10 @@ RectTransform:
   - {fileID: 7156649768277172742}
   m_Father: {fileID: 7524068171996386180}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5964127489483391871
 GameObject:
@@ -421,8 +421,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7524068171996386180}
-  - component: {fileID: 4285361513351042475}
   - component: {fileID: 2246847975939142385}
+  - component: {fileID: 1110431435923420654}
   m_Layer: 0
   m_Name: ESC
   m_TagString: Untagged
@@ -452,19 +452,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &4285361513351042475
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5964127489483391871}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6476ba380587f2240907cf2370acc16a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canvasGroup: {fileID: 2246847975939142385}
 --- !u!225 &2246847975939142385
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -477,3 +464,24 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &1110431435923420654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5964127489483391871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2be3927c4eba65b488aaf1452af2ea28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Root: {fileID: 7524068171996386180}
+  RootCanvas: {fileID: 2246847975939142385}
+  HighlightMarker: {fileID: 0}
+  ShadowTop: {fileID: 0}
+  ShadowBottom: {fileID: 0}
+  ShadowLeft: {fileID: 0}
+  ShadowRight: {fileID: 0}
+  FullShadow: {fileID: 7156649768277172742}
+  Padding: 12

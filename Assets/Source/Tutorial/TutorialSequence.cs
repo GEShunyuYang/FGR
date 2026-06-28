@@ -7,5 +7,5 @@ public class TutorialSequence : ScriptableObject
     public string PlayOnceKey;
     public bool PlayOnce = true;
 
-    public List<TutorialPageView> Pages;
+    public List<TutorialMaskView> Pages;
 }

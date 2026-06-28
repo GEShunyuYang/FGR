@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,6 +12,8 @@ public class Pause : MonoBehaviour
     [SerializeField] private Toggle OneHitToggle;
     [SerializeField] private Slider AudioSlider;
 
+    [SerializeField] private Button ExitBtn;
+
     public static bool OneHitEnabled { get; private set; }
 
     private void Awake()
@@ -18,6 +21,7 @@ public class Pause : MonoBehaviour
         AudioSlider.onValueChanged.AddListener(OnAudioChanged);
         LanguageToggle.onValueChanged.AddListener(OnLanguageToggleChanged);
         OneHitToggle.onValueChanged.AddListener(OnOneHitToggleChanged);
+        ExitBtn.onClick.AddListener(OnExitClicked);
     }
 
     private void Start()
@@ -66,5 +70,15 @@ public class Pause : MonoBehaviour
         AudioSlider.onValueChanged.RemoveListener(OnAudioChanged);
         LanguageToggle.onValueChanged.RemoveListener(OnLanguageToggleChanged);
         OneHitToggle.onValueChanged.RemoveListener(OnOneHitToggleChanged);
+        ExitBtn.onClick.RemoveListener(OnExitClicked);
+    }
+
+    private void OnExitClicked()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 }

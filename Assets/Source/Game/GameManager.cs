@@ -81,6 +81,14 @@ public class GameManager : MonoBehaviour
 
         BattleConfig config = BattleConfigs[CurrentSceneNum];
 
+        bool isLastBattle = CurrentSceneNum >= BattleNames.Length - 1;
+
+        if (isLastBattle)
+        {
+            SceneManager.LoadScene("GameEnd");
+            return;
+        }
+
         int oldStamina = CurrentRun.MaxStamina;
         int oldHealth = CurrentRun.MaxHealth;
 
