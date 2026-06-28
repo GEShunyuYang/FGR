@@ -2,12 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static BattleManager;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    [SerializeField] private CardDeck InitialOwnedCards;
+
     [SerializeField] public BattleConfig[] BattleConfigs;
+
+    public RunState CurrentRun { get; private set; }
 
     private string[] BattleNames = { "TeachingScene", "BattleScene1", "BattleScene2", "BattleScene3" };
 
@@ -15,7 +20,6 @@ public class GameManager : MonoBehaviour
 
     private RuntimeBattleState RTBS;
     public TransitionContext CurrentTransitionContext { get; private set; }
-
 
     void Awake()
     {
@@ -27,16 +31,11 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        if(!BattleConfigs[0].PlayerDeck)
-        {
-            Debug.LogError("player card deck is empty!");
-            return;
-        }
-
         if (BattleConfigs.Length < BattleNames.Length)
         {
             Debug.LogError("battle configs' count < scene count");
         }
+
     }
     private void OnLoadingNextScene()
     {
@@ -71,9 +70,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void OnBattleEnd()
+    private void OnBattleEnd(BattleEndData data)
     {
+        if (data.Result == BattleResult.Defeat)
+        {
+            CurrentTransitionContext = null;
+            SceneManager.LoadScene("GameStart");
+            return;
+        }
+
         BattleConfig config = BattleConfigs[CurrentSceneNum];
+
+        int oldStamina = CurrentRun.MaxStamina;
+        int oldHealth = CurrentRun.MaxHealth;
 
         if (!config.UseTransitionAfterBattle)
         {
@@ -81,11 +90,33 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        int nextIndex = CurrentSceneNum + 1;
+        BattleConfig nextConfig = nextIndex < BattleConfigs.Length ? BattleConfigs[nextIndex] : null;
+
+        if (config.ShowLevelUpPage && nextConfig != null)
+        {
+            CurrentRun.MaxStamina = nextConfig.MaxStamina;
+            CurrentRun.MaxHealth = nextConfig.PlayerMaxHealth;
+        }
+
+        if (config.ShowRewardCardPage)
+        {
+            AddOwnedCard(config.RewardCard);
+        }
+
         CurrentTransitionContext = new TransitionContext
         {
             ShowLevelUpPage = config.ShowLevelUpPage,
             ShowRewardCardPage = config.ShowRewardCardPage,
-            RewardCard = config.ShowRewardCardPage ? config.RewardCard : null
+            RewardCard = config.ShowRewardCardPage ? config.RewardCard : null,
+            ShowCardsPage = true,
+            LevelUp = new LevelUpInfo
+            {
+                OldStamina = oldStamina,
+                NewStamina = CurrentRun.MaxStamina,
+                OldHealth = oldHealth,
+                NewHealth = CurrentRun.MaxHealth
+            }
         };
 
         SceneManager.LoadScene("Transition");
@@ -132,20 +163,20 @@ public class GameManager : MonoBehaviour
                 Prefab = config.PlayerPrefab,
                 Config = new UnitConfig
                 {
-                    MaxHealth = config.PlayerMaxHealth,
+                    MaxHealth = CurrentRun.MaxHealth,
                     MoveRange = config.PlayerMoveRange,
                     MoveSpeed = config.PlayerMoveSpeed
                 },
-                CurrentHP = config.PlayerMaxHealth,
-                GridPos = config.PlayerStartPos
+                CurrentHP = CurrentRun.MaxHealth,
+                GridPos = config.PlayerStartPos,
             },
 
             Enemies = new List<UnitRuntime>(),
 
-            MaxStamina = config.MaxStamina,
-            CurrentStamina = config.MaxStamina,
+            MaxStamina = CurrentRun.MaxStamina,
+            CurrentStamina = CurrentRun.MaxStamina,
             MaxHandCount = config.MaxHandCount,
-            CurrentCardDeck = config.PlayerDeck
+            CurrentCardDeck = BuildBattleDeck()
         };
 
         foreach (EnemySpawnConfig enemy in config.Enemies)
@@ -167,20 +198,115 @@ public class GameManager : MonoBehaviour
         return state;
     }
 
+    public void StartNewRun()
+    {
+        CurrentSceneNum = 0;
+        CurrentRun = new RunState();
+
+        BattleConfig firstConfig = BattleConfigs[CurrentSceneNum];
+        CurrentRun.MaxStamina = firstConfig.MaxStamina;
+        CurrentRun.MaxHealth = firstConfig.PlayerMaxHealth;
+
+        foreach (CardData card in InitialOwnedCards.Cards)
+        {
+            AddOwnedCard(card);
+        }
+
+        foreach (CardData card in CurrentRun.OwnedCards)
+        {
+            TrySetDeckCount(card, 2);
+        }
+
+        SceneManager.LoadScene(BattleNames[CurrentSceneNum]);
+    }
+
+    public void AddOwnedCard(CardData card)
+    {
+        if (card == null) return;
+
+        if (!CurrentRun.OwnedCards.Contains(card))
+        {
+            CurrentRun.OwnedCards.Add(card);
+        }
+    }
+
+    public bool TrySetDeckCount(CardData card, int count)
+    {
+        if (card == null) return false;
+        if (!CurrentRun.OwnedCards.Contains(card)) return false;
+
+        count = Mathf.Clamp(count, 0, CurrentRun.MaxCopiesPerCard);
+
+        DeckCardEntry entry = CurrentRun.DeckConfig.Find(e => e.Card == card);
+        int oldCount = entry != null ? entry.Count : 0;
+
+        if (entry == null)
+        {
+            if (count == 0) return true;
+
+            CurrentRun.DeckConfig.Add(new DeckCardEntry
+            {
+                Card = card,
+                Count = count
+            });
+        }
+        else
+        {
+            if (count == 0)
+            {
+                CurrentRun.DeckConfig.Remove(entry);
+            }
+            else
+            {
+                entry.Count = count;
+            }
+        }
+
+        return true;
+    }
+    public int GetDeckCardCount(CardData card)
+    {
+        DeckCardEntry entry = CurrentRun.DeckConfig.Find(e => e.Card == card);
+        return entry != null ? entry.Count : 0;
+    }
+
+    public List<CardData> BuildBattleDeck()
+    {
+        List<CardData> result = new();
+
+        foreach (DeckCardEntry entry in CurrentRun.DeckConfig)
+        {
+            if (entry.Card == null) continue;
+
+            for (int i = 0; i < entry.Count; i++)
+            {
+                result.Add(entry.Card);
+            }
+        }
+
+        return result;
+    }
+
+    public void ConfirmDeck()
+    {
+        // to do, open a temproal card deck
+        // not necessary right now
+    }
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         EventsHandler.RegisterEvent(SceneEvents.NEXT_SCENE, OnLoadingNextScene);
-        EventsHandler.RegisterEvent(BattleEvents.END_BATTLE, OnBattleEnd);
-        EventsHandler.RegisterEvent(SceneEvents.TRY_AGAIN, OnPlayAgain);
+        EventsHandler.RegisterEvent<BattleEndData>(BattleEvents.END_BATTLE, OnBattleEnd);
+        //EventsHandler.RegisterEvent(SceneEvents.TRY_AGAIN, OnPlayAgain);
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         EventsHandler.UnregisterEvent(SceneEvents.NEXT_SCENE, OnLoadingNextScene);
-        EventsHandler.UnregisterEvent(BattleEvents.END_BATTLE, OnBattleEnd);
-        EventsHandler.UnregisterEvent(SceneEvents.TRY_AGAIN, OnPlayAgain);
+        EventsHandler.UnregisterEvent<BattleEndData>(BattleEvents.END_BATTLE, OnBattleEnd);
+        //EventsHandler.UnregisterEvent(SceneEvents.TRY_AGAIN, OnPlayAgain);
     }
 }
 
@@ -189,6 +315,9 @@ public class TransitionContext
     public bool ShowLevelUpPage;
     public bool ShowRewardCardPage;
     public CardData RewardCard;
+    public bool ShowCardsPage;
+
+    public LevelUpInfo LevelUp;
 }
 
 public class RuntimeBattleState
@@ -203,5 +332,24 @@ public class RuntimeBattleState
     public int CurrentStamina;
     public int MaxHandCount;
 
-    public CardDeck CurrentCardDeck;
+    public List<CardData> CurrentCardDeck;
+}
+
+[System.Serializable]
+public class RunState
+{
+    public List<CardData> OwnedCards = new();
+    public List<DeckCardEntry> DeckConfig = new();
+
+    public int MaxCopiesPerCard = 2;
+
+    public int MaxStamina;
+    public int MaxHealth;
+}
+
+[System.Serializable]
+public class DeckCardEntry
+{
+    public CardData Card;
+    public int Count;
 }

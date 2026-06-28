@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class GameStart : MonoBehaviour
 {
-
     [SerializeField] private Button StartBtn;
     [SerializeField] private Button ExitBtn;
     [SerializeField] private Button SettingBtn;
@@ -24,7 +23,7 @@ public class GameStart : MonoBehaviour
 
     private void OnStartClicked()
     {
-        SceneManager.LoadScene("TeachingScene");
+        GameManager.Instance.StartNewRun();
     }
 
     private void OnExitClicked()

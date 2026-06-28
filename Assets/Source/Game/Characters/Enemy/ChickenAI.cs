@@ -14,6 +14,7 @@ public class ChickenAI : EnemyAI
             target = new Vector2Int(Random.Range(0, board.BoardWidth), Random.Range(0, board.BoardHeight));
         }
 
+        queue.Enqueue(new FaceTargetAction(enemy, player.CurrentPos));
         queue.Enqueue(new MoveAction(board, enemy, target));
     }
 }

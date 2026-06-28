@@ -38,21 +38,16 @@ public class CardManager : MonoBehaviour
     {
         CurrentBattleState = RTBattleState;
         HandCardsCountLimit = RTBattleState.MaxHandCount;
-        for (int i = 0; i < CurrentBattleState.CurrentCardDeck.Cards.Count; i++)
+        foreach (CardData cardData in RTBattleState.CurrentCardDeck)
         {
-            CardData data = CurrentBattleState.CurrentCardDeck.Cards[i];
-            if (data == null)
-            {
-                Debug.LogWarning($"CardDeck has null card at index {i}.");
-                continue;
-            }
             CardInstance instance = new();
-            instance.Data = data;
-            instance.CurrentCost = instance.Data.BaseCost;
+            instance.Data = cardData;
+            instance.CurrentCost = cardData.BaseCost;
+
             instances.Add(instance);
             DrawPile.Add(instance);
         }
-        
+
     }
     
     public void DrawRandomCards(int N, BattleActionQueue Queue)

@@ -11,16 +11,27 @@ public class BattleInputController : MonoBehaviour
         CurrentBattleManager = battleManager;   
     }
 
+    private bool IsInputBlockedByTutorial()
+    {
+        return TutorialManager.Instance != null && TutorialManager.Instance.IsPlaying;
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetMouseButtonDown(1))
         {
-            CurrentBattleManager.TryUndoMove();
+            if (!IsInputBlockedByTutorial())
+            {
+                CurrentBattleManager.TryUndoMove();
+            }
         }
 
         if (Input.GetMouseButtonDown(0))
         {
-            TryClickBoardCell();
+            if (!IsInputBlockedByTutorial())
+            {
+                TryClickBoardCell();
+            }
         }
     }
 
@@ -37,6 +48,11 @@ public class BattleInputController : MonoBehaviour
 
     private void TryClickBoardCell()
     {
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsPlaying)
+        {
+            return;
+        }
+
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, 1 << 8))

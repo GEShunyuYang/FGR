@@ -2547,6 +2547,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fc22c3196cbcbe4a97b54de62f98854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  InitialOwnedCards: {fileID: 0}
   BattleConfigs:
   - {fileID: 11400000, guid: 2dd3b28063d71c942b818b24996084d0, type: 2}
 --- !u!4 &283128526
@@ -11726,7 +11727,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 085f70c82e9468640bc20a12f654e5bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  VolumeScale: 1
+  VolumeScale: 0.5
 --- !u!82 &931985745
 AudioSource:
   m_ObjectHideFlags: 0

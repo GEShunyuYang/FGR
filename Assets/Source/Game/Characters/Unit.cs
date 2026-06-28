@@ -151,7 +151,14 @@ public abstract class Unit : MonoBehaviour
 
         yield return WaitForAnimatorStateEnter("Attack");
 
-        yield return new WaitUntil(() => attackHitNotified);
+        float elapsed = 0f;
+        float fallbackHitTime = 1f;
+
+        while (!attackHitNotified && elapsed < fallbackHitTime)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
     }
 
     public IEnumerator WaitAttackEnd()
@@ -164,11 +171,30 @@ public abstract class Unit : MonoBehaviour
     {
         // tbd damage effect
         runtime.CurrentHP -= damage;
+        HPBar.SetHealth(runtime.CurrentHP, runtime.Config.MaxHealth);
+
+        if (Animator == null)
+        {
+            Debug.LogWarning("Animator is null.");
+            yield break;
+        }
+
         if (runtime.CurrentHP <= 0)
         {
             State = UnitState.Dead;
+
+            Animator.SetTrigger("Die");
+            //yield return WaitForAnimatorStateEnter("Death");
+            yield return new WaitForSeconds(0.7f);
+
         }
-        HPBar.SetHealth(runtime.CurrentHP, runtime.Config.MaxHealth);
+        else
+        {
+            Animator.SetTrigger("Damaged");
+            yield return WaitForAnimatorStateEnter("Damage");
+            yield return new WaitForSeconds(0.2f);
+        }
+
         yield return null;
     }
 
@@ -217,9 +243,8 @@ public abstract class Unit : MonoBehaviour
         while (true)
         {
             AnimatorStateInfo current = Animator.GetCurrentAnimatorStateInfo(layer);
-            AnimatorStateInfo next = Animator.GetNextAnimatorStateInfo(layer);
 
-            if (current.IsName(stateName) || next.IsName(stateName))
+            if (current.IsName(stateName) && !Animator.IsInTransition(layer))
             {
                 yield break;
             }
@@ -228,6 +253,20 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+    private IEnumerator WaitForAnimatorStateComplete(string stateName, int layer = 0)
+    {
+        while (true)
+        {
+            AnimatorStateInfo current = Animator.GetCurrentAnimatorStateInfo(layer);
+
+            if (current.IsName(stateName) && current.normalizedTime >= 0.95f && !Animator.IsInTransition(layer))
+            {
+                yield break;
+            }
+
+            yield return null;
+        }
+    }
     private IEnumerator WaitForAnimatorStateExit(string stateName, int layer = 0)
     {
         while (true)

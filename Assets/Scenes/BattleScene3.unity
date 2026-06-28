@@ -10388,6 +10388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fc22c3196cbcbe4a97b54de62f98854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  InitialOwnedCards: {fileID: 0}
   BattleConfigs:
   - {fileID: 11400000, guid: ecaedafa0ef503447a4f9ce9937232bc, type: 2}
 --- !u!4 &477493265
@@ -18571,8 +18572,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 853729333}
-  - component: {fileID: 853729332}
   - component: {fileID: 853729331}
+  - component: {fileID: 853729332}
   m_Layer: 0
   m_Name: BGM
   m_TagString: Untagged
@@ -18688,7 +18689,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 085f70c82e9468640bc20a12f654e5bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  VolumeScale: 1
+  VolumeScale: 0.5
 --- !u!4 &853729333
 Transform:
   m_ObjectHideFlags: 0

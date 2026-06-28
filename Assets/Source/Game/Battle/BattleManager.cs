@@ -32,6 +32,8 @@ public class BattleManager : MonoBehaviour
     private Vector2Int PreviousPlayerCell;
     private Vector2Int LastMovedCell; // not used 
 
+    private BoardPreviewMode CurrentPreviewMode;
+
     private enum BoardPreviewMode
     {
         None,
@@ -39,7 +41,17 @@ public class BattleManager : MonoBehaviour
         Card
     }
 
-    private BoardPreviewMode CurrentPreviewMode;
+    public enum BattleResult
+    {
+        Victory,
+        Defeat
+    }
+
+    public class BattleEndData
+    {
+        public BattleResult Result;
+    }
+
 
     private void Awake()
     {
@@ -113,10 +125,11 @@ public class BattleManager : MonoBehaviour
     {
         yield return Queue.Execute();
 
-        if (CheckBattleEnd())
+        if (CheckBattleEnd(out BattleResult result))
         {
             ChangeState(BattleState.BattleEnd);
-            
+            EndBattle(result);
+
         } else if(CurrentBattleState.State == BattleState.EnemyTakingActions)
         {
             ChangeState(BattleState.EnemyTurnEnd);
@@ -167,9 +180,10 @@ public class BattleManager : MonoBehaviour
     {
         ChangeState(BattleState.PlayerTurnStart);
     }
-    private void EndBattle()
+
+    private void EndBattle(BattleResult result)
     {
-        EventsHandler.TriggerEvent(BattleEvents.END_BATTLE);
+        EventsHandler.TriggerEvent(BattleEvents.END_BATTLE, new BattleEndData { Result = result });
     }
 
     public bool TryPlayCard(CardInstance card, Unit target)
@@ -248,22 +262,35 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    private bool CheckBattleEnd()
+    private bool CheckBattleEnd(out BattleResult result)
     {
-        // deal deaths
-        for(int i = CurrentEnemies.Count - 1; i >= 0; i--)
+        if (CurrentPlayer.State == UnitState.Dead)
         {
-            Unit Enemy = CurrentEnemies[i];
+            result = BattleResult.Defeat;
+            return true;
+        }
 
-            if(Enemy.State != UnitState.Dead)
+        for (int i = CurrentEnemies.Count - 1; i >= 0; i--)
+        {
+            Unit enemy = CurrentEnemies[i];
+
+            if (enemy.State != UnitState.Dead)
             {
                 continue;
             }
 
             CurrentEnemies.RemoveAt(i);
-            Destroy(Enemy.gameObject);
+            Destroy(enemy.gameObject);
         }
-        return CurrentEnemies.Count <= 0 || CurrentPlayer.State == UnitState.Dead;
+
+        if (CurrentEnemies.Count <= 0)
+        {
+            result = BattleResult.Victory;
+            return true;
+        }
+
+        result = BattleResult.Victory;
+        return false;
     }
 
     private void ChangeState(BattleState nextState)
@@ -319,7 +346,7 @@ public class BattleManager : MonoBehaviour
 
             case BattleState.BattleEnd:
                 DebugInfo("to BattleEnd");
-                EndBattle();
+                //EndBattle();
                 break;
         }
     }

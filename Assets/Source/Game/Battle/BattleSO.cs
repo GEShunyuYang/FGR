@@ -14,7 +14,6 @@ public class BattleConfig : ScriptableObject
     public int MaxHandCount;
 
     public List<EnemySpawnConfig> Enemies;
-    public CardDeck PlayerDeck;
 
     public bool UseTransitionAfterBattle;
     public bool ShowLevelUpPage;

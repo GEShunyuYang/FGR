@@ -17,6 +17,10 @@ ui.onehit,一击必杀开关,One Hit Switch
 ui.back,ESC键后退,ESC to back
 ui.yourturn,你的回合！,Your Turn!
 ui.enemyturn,敌人回合,Enemy Turn
+ui.edit,编辑你的牌库,Edit your Carddeck
+ui.confirm,确认,Confirm
+ui.stamina,耐力,Stamina
+ui.health,生命值,Health
 ,,
 card.melee.name,近战攻击,Melee Attack
 card.melee.desc,"范围{range}, 造成{damage}点伤害。","Range {range}, deal {damage} damage."
@@ -30,3 +34,6 @@ card.hammer.name,重锤,Hammer
 card.hammer.desc,"前方矩形范围, 对范围内所有人造成{damage}点伤害。","Rectangle range ahead {range}, deal {damage} damage to all enemies in range."
 card.magic.name,魔法,Magic
 card.magic.desc,"间隔{range}, 方形范围，对范围内所有人造成{damage}点伤害。","Interval {range}, Square range 1, deal {damage} damage to all enemies in range."
+,,
+tutorial.esc,您可以随时按下 ESC 键打开设置面板，其中包含背景音乐音量调节滑块、中英文语言切换按钮以及一击必杀开关（可让您一击必杀）。当您觉得游戏太难时，不妨试试这个功能 :),"You can press ESC to invoke setting panel at any moment, where contains BGM volumn slider, Language switch from chinese and english, and a One hit toggle allow you kill in One-hit. Trigger this when you find the game too difficult :)"
+tutorial.space,按下空格键以切换教程页,Press the spacebar to switch tutorial pages.
