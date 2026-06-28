@@ -10,8 +10,8 @@ public class Enemy : Unit
 {
     [SerializeField] private EnemyAI Brain;
 
-    public void BuildTurnActions(Unit player, Board board, BattleActionQueue queue)
+    public void BuildTurnActions(Unit player, Board board, BattleActionQueue queue, HashSet<Vector2Int> reservedCells)
     {
-        Brain.BuildActions(this, player, board, queue);
+        Brain.BuildActions(this, player, board, queue, reservedCells);
     }
 }

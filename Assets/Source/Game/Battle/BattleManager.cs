@@ -161,9 +161,18 @@ public class BattleManager : MonoBehaviour
         yield return CurrentUIManager.ShowTurnBanner(
             LocalizationManager.Instance.GetText("ui.enemyturn"), .7f);
 
+        HashSet<Vector2Int> reservedCells = new();
+
         foreach (Enemy enemy in CurrentEnemies)
         {
-            enemy.BuildTurnActions(CurrentPlayer, Board, Queue);
+            reservedCells.Add(enemy.CurrentPos);
+        }
+
+        reservedCells.Add(CurrentPlayer.CurrentPos);
+
+        foreach (Enemy enemy in CurrentEnemies)
+        {
+            enemy.BuildTurnActions(CurrentPlayer, Board, Queue, reservedCells);
         }
 
         if (Queue.HasActions)

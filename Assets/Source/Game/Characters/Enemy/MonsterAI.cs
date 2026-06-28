@@ -7,7 +7,7 @@ public class MonsterAI : EnemyAI
 {
     [SerializeField] private float Damage = 10f;
 
-    public override void BuildActions(Enemy enemy, Unit player, Board board, BattleActionQueue queue)
+    public override void BuildActions(Enemy enemy, Unit player, Board board, BattleActionQueue queue, HashSet<Vector2Int> reservedCells)
     {
         if (enemy == null || player == null || board == null)
         {
@@ -20,11 +20,15 @@ public class MonsterAI : EnemyAI
             return;
         }
 
-        Vector2Int bestCell = FindBestCell(enemy, player, board);
+        Vector2Int bestCell = FindBestCell(enemy, player, board, reservedCells);
 
         if (bestCell != enemy.CurrentPos)
         {
+            reservedCells.Remove(enemy.CurrentPos);
+            reservedCells.Add(bestCell);
+
             queue.Enqueue(new MoveAction(board, enemy, bestCell));
+            queue.Enqueue(new FaceTargetAction(enemy, player.CurrentPos));
         }
 
         if (CanAttack(bestCell, player.CurrentPos))
@@ -49,7 +53,7 @@ public class MonsterAI : EnemyAI
         return distance == 1;
     }
 
-    private Vector2Int FindBestCell(Enemy enemy, Unit player, Board board)
+    private Vector2Int FindBestCell(Enemy enemy, Unit player, Board board, HashSet<Vector2Int> reservedCells)
     {
         Vector2Int bestCell = enemy.CurrentPos;
         int bestScore = int.MinValue;
@@ -63,7 +67,7 @@ public class MonsterAI : EnemyAI
             {
                 Vector2Int cell = new Vector2Int(x, y);
 
-                if (!CanStandOn(cell, enemy, board))
+                if (!CanStandOn(cell, enemy, board, reservedCells))
                 {
                     continue;
                 }
@@ -100,7 +104,7 @@ public class MonsterAI : EnemyAI
         return bestCell;
     }
 
-    private bool CanStandOn(Vector2Int cell, Enemy enemy, Board board)
+    private bool CanStandOn(Vector2Int cell, Enemy enemy, Board board, HashSet<Vector2Int> reservedCells)
     {
         if (!board.IsInside(cell))
         {
@@ -110,6 +114,11 @@ public class MonsterAI : EnemyAI
         if (cell == enemy.CurrentPos)
         {
             return true;
+        }
+
+        if (reservedCells.Contains(cell))
+        {
+            return false;
         }
 
         return !board.IsOccupied(cell);

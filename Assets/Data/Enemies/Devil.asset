@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: Devil
   m_EditorClassIdentifier: 
   EnemyPrefab: {fileID: 4922959715514216336, guid: 334253b6cdd5bf94eb44465bfedfd481, type: 3}
-  MaxHealth: 50
-  MoveRange: 3
+  MaxHealth: 70
+  MoveRange: 4
+  MoveSpeed: 4

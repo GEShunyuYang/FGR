@@ -15,3 +15,4 @@ MonoBehaviour:
   EnemyPrefab: {fileID: 6766198254599881932, guid: 2ee6994c02e56834e9231bf1627d2b49, type: 3}
   MaxHealth: 150
   MoveRange: 2
+  MoveSpeed: 3.5
