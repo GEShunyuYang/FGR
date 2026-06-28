@@ -27,7 +27,7 @@ public class RectangleDamageEffect : CardEffect
 
             float finalDamage = context.DMGResolver.Resolve(context, Damage);
 
-            queue.Enqueue(new DamageAction(unit, finalDamage));
+            queue.Enqueue(new DamageAction(unit, context.Caster, finalDamage));
         }
 
         queue.Enqueue(new WaitAnimationEndAction(context.Caster));

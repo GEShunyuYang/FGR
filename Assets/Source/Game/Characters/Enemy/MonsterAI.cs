@@ -37,7 +37,7 @@ public class MonsterAI : EnemyAI
     {
         queue.Enqueue(new FaceTargetAction(enemy, player.CurrentPos));
         queue.Enqueue(new PlayAnimationAction(enemy, UnitAnimationType.Attack));
-        queue.Enqueue(new DamageAction(player, Damage));
+        queue.Enqueue(new DamageAction(player, enemy, Damage));
         queue.Enqueue(new WaitAnimationEndAction(enemy));
     }
 

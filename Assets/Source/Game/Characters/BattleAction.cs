@@ -49,16 +49,28 @@ public class MoveAction : BattleAction
 public class DamageAction : BattleAction
 {
     private Unit target;
+    private Unit source;
     private float damage;
 
-    public DamageAction(Unit target, float damage)
+    public DamageAction(Unit target, Unit source, float damage)
     {
         this.target = target;
+        this.source = source;
         this.damage = damage;
     }
 
     public override IEnumerator Execute()
     {
+        if (target == null)
+        {
+            yield break;
+        }
+
+        if (source != null)
+        {
+            yield return target.FaceCell(source.CurrentPos);
+        }
+
         yield return target.TakeDamage(damage);
     }
 }
